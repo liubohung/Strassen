@@ -37,9 +37,8 @@ public:
 			}
 		}
 	}
-	SArray(int** arr,int col,int row):Row(row),Col(col),size(0){
-		//Col 為列數 row 為行數 [col][row]
-		/*
+	SArray(int** arr,int col,int row):Row(row),Col(col){
+		/*. Col 為列數 row 為行數 [col][row]
 		  \ row
 		col	
 			X X X X   O O
@@ -47,6 +46,9 @@ public:
 					  O O
 					  O O 
 		*/
+		if(col == row){
+			this->size = row;
+		}
 		this->array = new int*[col] ;
 		for(int i =0;i<col;i++){
 			this->array[i] = new int[row]() ;
@@ -62,7 +64,6 @@ public:
 			this->clear_arr();
 		}	
 	}
-
 	void Show(void){
 		if(this->size== -1){
 			cout<<"Is empty"<<endl;
@@ -77,7 +78,7 @@ public:
 		}
 	}
 	void Showsize(){
-		cout<<"size :"<<this->size<<endl;
+		cout<<"Size :"<<this->size<<endl;
 		cout<<" Col :"<<this->Col<<endl;
 		cout<<" Row :"<<this->Row<<endl;
 		cout<<endl;
@@ -198,34 +199,6 @@ public:
     	}
     	return SArray((int**)array,this->Col,this->Row);
     }
-  //   static SArray Combine(SArray a[4]) {
-  //   	// cout<<"Combine"<<endl;
-  //   	// cout<<"Size:"<<a[0]->size * 2<<endl;
-  //   	if()
-  //   	int original = a[0].size;
-  //   	int newsize = original * 2;
-  //   	int array[newsize][newsize];
-  //   	//top
-  //   	for(int i = 0 ;i < original ; i++){
-  //   		for(int j = 0; j< original ; j++){
-		// 		array[i][j] = a[0].array[i][j];
-  //   		}
-  //   		for(int k = original; k < newsize ; k++){
-  //   			array[i][k] = a[1].array[i][k-original];
-  //   		}
-  //   	}
-  //   	//down
-  //   	for(int i = original; i < newsize ; i++){
-  //   		for(int j = 0; j < original ; j++){
-		// 		array[i][j] = a[2].array[i-original][j];
-  //   		}
-  //   		for(int k = original; k < newsize ; k++){
-  //   			array[i][k] = a[3].array[i-original][k-original];
-  //   		}
-  //   	}
-
-		// return SArray((int**)array,newsize);
-  //   }
     SArray& operator=(SArray other){
     	if(this->Col != other.Col || this->Row != other.Row){
     		if(this->array != NULL){
@@ -267,8 +240,6 @@ public:
 				ANS[1] = (Mnum[2] + Mnum[4]);
 				ANS[2] = (Mnum[1] + Mnum[3]);
 				ANS[3] = (Mnum[0] + Mnum[2] - Mnum[1] + Mnum[5]);
-
-
 				if(0){
 					cout<<"1"<<endl;
 					cout<<"M1:"<<endl;
@@ -506,10 +477,10 @@ void mytest2(void){
 	hh1.Show();
 	hh2.squarify(5);
 	hh1.squarify(5);
-	cout<<"5*5"<<endl;
+	cout<<"====5*5===="<<endl;
 	(hh1*hh2).Show();
 	(hh1.pMul(hh2)).Show();
-	cout<<"3/2 = "<<3/2<<endl;
+
 	int qq[5][5] ={
 		{1,2,3,4,5},
 		{1,211,3,4,5},
@@ -536,8 +507,78 @@ void mytest2(void){
 	delete &a;
 	delete &b;
 }
+void Run_test(){
+	int arg[4]={30,30,30,70};
+	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
+	int max=10,min= 0;
+	for(int i =0;i<arg[0];i++){
+		for(int j=0;j<arg[1];j++){
+			arr1[i][j]=rand()% (max - min + 1) + min;
+		}
+	}
+	for(int i =0;i<arg[2];i++){
+		for(int j=0;j<arg[3];j++){
+			arr2[i][j]=rand()% (max - min + 1) + min;
+		}
+	}
+
+	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
+	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
+	F_matrix.Show();
+	S_matrix.Show();
+	int large=0;
+	for(int i =0;i<4;i++){
+		if(arg[i] > large) large = arg[i];
+	}
+
+	if( arg[0] != arg[1] && arg[2] != arg[3]){
+		if((large &1) == 1){
+			large++;
+		}
+		F_matrix.squarify(large);
+		S_matrix.squarify(large);
+	}
+	F_matrix.Show();
+	S_matrix.Show();
+	// (F_matrix*S_matrix).Show();
+	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
+}
+void Main(void){
+	int arg[4];
+	for( int i = 0 ; i < 4 ; i++){
+		scanf("%d",&arg[i]);
+	}
+	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
+	for(int i =0;i<arg[0];i++){
+		for(int j=0;j<arg[1];j++){
+			scanf("%d",&arr1[i][j]);
+		}
+	}
+	for(int i =0;i<arg[2];i++){
+		for(int j=0;j<arg[3];j++){
+			scanf("%d",&arr2[i][j]);
+		}
+	}
+
+	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
+	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
+	int large=0;
+	for(int i =0;i<4;i++){
+		if(arg[i] > large) large = arg[i];
+	}
+	if( arg[0] != arg[1] && arg[2] != arg[3] && arg[1] != arg[2]){
+		if((large &1) == 1){
+			large++;
+		}
+		F_matrix.squarify(large);
+		S_matrix.squarify(large);
+	}
+	// F_matrix.Show();
+	// S_matrix.Show();
+	// (F_matrix*S_matrix).Show();
+	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
+}
 int main(void){
 	//mytest1(500);
-	int a,b,c,d;
-
+	Main();
 }	
