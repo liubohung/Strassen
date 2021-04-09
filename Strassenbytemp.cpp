@@ -1,8 +1,15 @@
-#include<iostream>
-
+#include <iostream>
+#include <cstdio>
+#include <cstdlib> 
+#include <ctime> 
 using namespace std;
 
 class SArray{
+	/*
+		if size is 0 is mean Row and Col is not equal(not a square matrix).
+		if SArray is an empty not Initialization the size
+		will be -1 also then Col and Row.
+	*/
 public:
 	int **array;
 	int size;
@@ -16,13 +23,13 @@ public:
 	SArray(int length):size(length),Row(length),Col(length){
 		this->array = new int*[length] ;
 		for(int i =0;i<size;i++){
-			this->array[i] = new int[length] ;
+			this->array[i] = new int[length]() ;
 		}
 	}
 	SArray(int** arr,int length):size(length),Row(length),Col(length){
 		this->array = new int*[length] ;
 		for(int i =0;i<length;i++){
-			this->array[i] = new int[length] ;
+			this->array[i] = new int[length]();
 		}
 		for(int i = 0 ;i < length; i++){
 			for(int j = 0;j < length;j++){
@@ -42,7 +49,7 @@ public:
 		*/
 		this->array = new int*[col] ;
 		for(int i =0;i<col;i++){
-			this->array[i] = new int[row] ;
+			this->array[i] = new int[row]() ;
 		}
 		for(int i = 0 ;i < col; i++){
 			for(int j = 0;j < row;j++){
@@ -52,10 +59,7 @@ public:
 	}
 	~SArray(){
 		if(this->array != NULL){
-			for(int i =0;i<this->Col;i++){
-				delete this->array[i];
-			}
-			delete[] this->array ;
+			this->clear_arr();
 		}	
 	}
 
@@ -72,10 +76,38 @@ public:
 			cout<<endl;
 		}
 	}
+	void Showsize(){
+		cout<<"size :"<<this->size<<endl;
+		cout<<" Col :"<<this->Col<<endl;
+		cout<<" Row :"<<this->Row<<endl;
+		cout<<endl;
+	}
+	void anti_Show(int idy,int idx){
+		for(int i =0;i<idx;i++){
+			for(int j=0;j<idy;j++){
+				cout << this->array[i][j] << " ";
+			}
+			cout<<endl;
+		}
+		cout<<endl;
+	}
 
 	int getsize(void) const{ return this->size; }
 	int getRow(void) const{ return this->Row; }
 	int getCol(void) const{ return this->Col; }
+	
+	void clear_arr(void){
+		if(this->array != NULL && this->size >= 0){
+			for(int i =0; i < this->Col ; i++){
+				delete this->array[i];
+			}
+			delete[] this->array ;
+		}
+		this->array = NULL;
+		this->size = -1;
+		this->Row = -1;
+		this->Col = -1;
+	}
 
 	SArray getsub(int idx,int idy,int size) const {
 		//must to be a square matrix 
@@ -91,6 +123,7 @@ public:
 		}
 		return SArray((int**)temparr,size);
 	}
+
 	SArray& operator+=(SArray& a){ 
 		if(a.Row == this->Row && a.Col == this->Col){
 			for(int i = 0; i < this->Col ; i++){
@@ -119,7 +152,7 @@ public:
 					array[i][j] = this->array[i][j] + a.array[i][j];
 				}
 			}
-			return SArray((int**)array,this->size);
+			return SArray((int**)array,this->Row,this->Col);
 		}else{
 			return SArray();	
 		}
@@ -129,10 +162,10 @@ public:
     		int array[this->Col][this->Row];
 			for(int i = 0; i < this->Col ; i++){
 				for(int j = 0 ; j < this->Row ; j++){
-					array[i][j] = this->array[i][j] + a.array[i][j];
+					array[i][j] = this->array[i][j] - a.array[i][j];
 				}
 			}
-			return SArray((int**)array,this->size);
+			return SArray((int**)array,this->Row,this->Col);
 		}else{
 			return SArray();	
 		}
@@ -141,74 +174,71 @@ public:
     	if(this->Row == a.Col){
     		int array[this->Col][a.Row];
     		for(int i = 0 ; i < this->Col; i++){
-				for(int j = 0 ;j < this->Row;j++){
+				for(int j = 0 ;j < a.Row;j++){
 					int num=0;
 					for(int k=0 ;k < this->Row;k++){
 						num += this->array[i][k] * a.array[k][j];
 					}
 					array[i][j] = num;
-					// cout<<"i: "<<i<<" "<<"j: "<<j<<" "<< "ans: "<< temp.array[i][j]<<endl;
 				}
 			}
 			return SArray((int**)array,this->Col,a.Row);
     	}else{
     		return SArray();
-    	}
-    	
+    	}	
     }
     SArray operator*(int num){
-    	int array[this->size][this->size];
+    	int array[this->Col][this->Row];
     	if(this->array != NULL){
-    		for(int i = 0;i<size;i++){
-				for(int j =0 ;j<size;j++){
+    		for(int i = 0;i<this->Col;i++){
+				for(int j =0 ;j<this->Row;j++){
 					array[i][j] = this->array[i][j] * num;
 				}
 			}
     	}
-    	return SArray((int**)array,this->size);
+    	return SArray((int**)array,this->Col,this->Row);
     }
-    static SArray Combine(SArray a[4]) {
-    	// cout<<"Combine"<<endl;
-    	// cout<<"Size:"<<a[0]->size * 2<<endl;
+  //   static SArray Combine(SArray a[4]) {
+  //   	// cout<<"Combine"<<endl;
+  //   	// cout<<"Size:"<<a[0]->size * 2<<endl;
+  //   	if()
+  //   	int original = a[0].size;
+  //   	int newsize = original * 2;
+  //   	int array[newsize][newsize];
+  //   	//top
+  //   	for(int i = 0 ;i < original ; i++){
+  //   		for(int j = 0; j< original ; j++){
+		// 		array[i][j] = a[0].array[i][j];
+  //   		}
+  //   		for(int k = original; k < newsize ; k++){
+  //   			array[i][k] = a[1].array[i][k-original];
+  //   		}
+  //   	}
+  //   	//down
+  //   	for(int i = original; i < newsize ; i++){
+  //   		for(int j = 0; j < original ; j++){
+		// 		array[i][j] = a[2].array[i-original][j];
+  //   		}
+  //   		for(int k = original; k < newsize ; k++){
+  //   			array[i][k] = a[3].array[i-original][k-original];
+  //   		}
+  //   	}
 
-    	int original = a[0].size;
-    	int newsize = original * 2;
-    	int array[newsize][newsize];
-    	//top
-    	for(int i = 0 ;i < original ; i++){
-    		for(int j = 0; j< original ; j++){
-				array[i][j] = a[0].array[i][j];
-    		}
-    		for(int k = original; k < newsize ; k++){
-    			array[i][k] = a[1].array[i][k-original];
-    		}
-    	}
-    	//down
-    	for(int i = original; i < newsize ; i++){
-    		for(int j = 0; j < original ; j++){
-				array[i][j] = a[2].array[i-original][j];
-    		}
-    		for(int k = original; k < newsize ; k++){
-    			array[i][k] = a[3].array[i-original][k-original];
-    		}
-    	}
-
-		return SArray((int**)array,newsize);
-    }
+		// return SArray((int**)array,newsize);
+  //   }
     SArray& operator=(SArray other){
-    	if(other.getsize() != this->size){
+    	if(this->Col != other.Col || this->Row != other.Row){
     		if(this->array != NULL){
-    			for(int i =0;i<this->size;i++){
-		    		delete this->array[i];
-		    	}
-	    		delete[] this->array;
+    			this->clear_arr();
     		}
     		this->size = other.getsize();
+    		this->array = new int*[other.Col];
+			for(int i =0;i < other.Col ; i++){
+				this->array[i] = new int[other.Row]() ;
+			}
     	}
-    	this->array = new int*[other.getsize()];
-		for(int i =0;i < this->size ; i++){
-			this->array[i] = new int[other.getsize()] ;
-		}
+    	this->Col = other.Col;
+		this->Row = other.Row;
 		for(int i = 0; i < this->Col ; i++){
 			for(int j = 0 ; j < this->Row ; j++){
 				this->array[i][j] = other.array[i][j];
@@ -217,83 +247,151 @@ public:
 		return *this;
 	}
     SArray operator*(const SArray& a){ 
-    	if(a.getsize()<=2){
-    		return this->pMul(a);
+    	if(this->Row == a.Col){
+	    	if(a.getsize()<=2){
+	    		return this->pMul(a);
+	    	}else{
+	    		SArray Mnum[7];
+				SArray ANS[4];
+				int nsize = a.getsize()/2;
+
+				Mnum[0] = ((this->getsub(0,0,nsize)) + (this->getsub(nsize,nsize,nsize))) * ((a.getsub(0,0,nsize)) + (a.getsub(nsize,nsize,nsize)));
+				Mnum[1] = ((this->getsub(nsize,0,nsize) + this->getsub(nsize,nsize,nsize)) * a.getsub(0,0,nsize));
+				Mnum[2] = (this->getsub(0,0,nsize) * ((a.getsub(0,nsize,nsize)) - (a.getsub(nsize,nsize,nsize))));
+				Mnum[3] = (this->getsub(nsize,nsize,nsize) * ( a.getsub(nsize,0,nsize) - a.getsub(0,0,nsize)));
+				Mnum[4] = (this->getsub(0,0,nsize) + this->getsub(0,nsize,nsize)) * a.getsub(nsize,nsize,nsize);
+				Mnum[5] = (this->getsub(nsize,0,nsize)-this->getsub(0,0,nsize)) * (a.getsub(0,0,nsize) + a.getsub(0,nsize,nsize));
+				Mnum[6] = (this->getsub(0,nsize,nsize) - this->getsub(nsize,nsize,nsize)) * (a.getsub(nsize,0,nsize) + a.getsub(nsize,nsize,nsize));
+				
+				ANS[0] = (Mnum[0] + Mnum[3] - Mnum[4] + Mnum[6]);
+				ANS[1] = (Mnum[2] + Mnum[4]);
+				ANS[2] = (Mnum[1] + Mnum[3]);
+				ANS[3] = (Mnum[0] + Mnum[2] - Mnum[1] + Mnum[5]);
+
+
+				if(0){
+					cout<<"1"<<endl;
+					cout<<"M1:"<<endl;
+					Mnum[0].Show();
+					cout<<"2"<<endl;
+					cout<<"M2:"<<endl;
+					Mnum[1].Show();
+					cout<<"3"<<endl;
+					cout<<"M3:"<<endl;
+					Mnum[2].Show();
+					cout<<"4"<<endl;
+					cout<<"M4:"<<endl;
+					Mnum[3].Show();
+					cout<<"5"<<endl;
+					cout<<"M5:"<<endl;
+					Mnum[4].Show();
+					cout<<"6"<<endl;
+					cout<<"M6:"<<endl;
+					Mnum[5].Show();
+					cout<<"7"<<endl;
+					cout<<"M7:"<<endl;
+					Mnum[6].Show();
+					cout<<"ANS array: "<<endl;
+					ANS[0].Show();
+					ANS[1].Show();
+					ANS[2].Show();
+					ANS[3].Show();
+					// cout<<"ANS"<<endl;
+					// this->Combine(ANS).Show();
+					// cout<<"Return"<<endl;
+				}
+
+				int original = nsize;
+		    	int newsize = original * 2;
+		    	int array[newsize][newsize];
+
+				for(int i = 0 ;i < original ; i++){
+		    		for(int j = 0; j < original ; j++){
+						array[i][j] = ANS[0].array[i][j];
+		    		}
+		    		for(int k = original; k < newsize ; k++){
+		    			array[i][k] = ANS[1].array[i][k-original];
+		    		}
+		    	}
+		    	//down
+		    	for(int i = original; i < newsize ; i++){
+		    		for(int j = 0; j < original ; j++){
+						array[i][j] = ANS[2].array[i-original][j];
+		    		}
+		    		for(int k = original; k < newsize ; k++){
+		    			array[i][k] = ANS[3].array[i-original][k-original];
+		    		}
+		    	}
+				return SArray((int**)array,newsize);
+	    	}
     	}else{
-    		SArray Mnum[7];
-			SArray ANS[4];
-			int nsize = a.getsize()/2;
-
-			Mnum[0] = ((this->getsub(0,0,nsize)) + (this->getsub(nsize,nsize,nsize))) * ((a.getsub(0,0,nsize)) + (a.getsub(nsize,nsize,nsize)));
-			Mnum[1] = (this->getsub(nsize,0,nsize) + this->getsub(nsize,nsize,nsize)) * a.getsub(0,0,nsize);
-			Mnum[2] = this->getsub(0,0,nsize) * (a.getsub(0,nsize,nsize) - a.getsub(nsize,nsize,nsize));
-			Mnum[3] = this->getsub(nsize,nsize,nsize) * ( a.getsub(nsize,0,nsize) - a.getsub(0,0,nsize));
-			Mnum[4] = (this->getsub(0,0,nsize) + this->getsub(0,nsize,nsize)) * a.getsub(nsize,nsize,nsize);
-			Mnum[5] = (this->getsub(nsize,0,nsize) - this->getsub(0,0,nsize)) * (a.getsub(0,0,nsize) + a.getsub(0,nsize,nsize));
-			Mnum[6] = (this->getsub(0,nsize,nsize) - this->getsub(nsize,nsize,nsize)) * (a.getsub(nsize,0,nsize) + a.getsub(nsize,nsize,nsize));
-			
-			ANS[0] = (Mnum[0] + Mnum[3] - Mnum[4] + Mnum[6]);
-			ANS[1] = (Mnum[2] + Mnum[4]);
-			ANS[2] = (Mnum[1] + Mnum[3]);
-			ANS[3] = (Mnum[0] + Mnum[2] - Mnum[1] + Mnum[5]);
-
-			// if(false){
-			// 	cout<<"1"<<endl;
-			// 	cout<<"M1:"<<endl;
-			// 	Mnum[0].Show();
-			// 	cout<<"2"<<endl;
-			// 	cout<<"M2:"<<endl;
-			// 	Mnum[1].Show();
-			// 	cout<<"3"<<endl;
-			// 	cout<<"M3:"<<endl;
-			// 	Mnum[2].Show();
-			// 	cout<<"4"<<endl;
-			// 	cout<<"M4:"<<endl;
-			// 	Mnum[3].Show();
-			// 	cout<<"5"<<endl;
-			// 	cout<<"M5:"<<endl;
-			// 	Mnum[4].Show();
-			// 	cout<<"6"<<endl;
-			// 	cout<<"M6:"<<endl;
-			// 	Mnum[5].Show();
-			// 	cout<<"7"<<endl;
-			// 	cout<<"M7:"<<endl;
-			// 	Mnum[6].Show();
-			// 	cout<<"ANS array: "<<endl;
-			// 	ANS[0]->Show();
-			// 	ANS[1]->Show();
-			// 	ANS[2]->Show();
-			// 	ANS[3]->Show();
-			// 	cout<<"ANS"<<endl;
-			// 	this->Combine(ANS).Show();
-			// 	cout<<"Return"<<endl;
-			// }
-			int original = nsize;
-	    	int newsize = original * 2;
-	    	int array[newsize][newsize];
-
-			for(int i = 0 ;i < original ; i++){
-	    		for(int j = 0; j < original ; j++){
-					array[i][j] = ANS[0].array[i][j];
-	    		}
-	    		for(int k = original; k < newsize ; k++){
-	    			array[i][k] = ANS[1].array[i][k-original];
-	    		}
-	    	}
-	    	//down
-	    	for(int i = original; i < newsize ; i++){
-	    		for(int j = 0; j < original ; j++){
-					array[i][j] = ANS[2].array[i-original][j];
-	    		}
-	    		for(int k = original; k < newsize ; k++){
-	    			array[i][k] = ANS[3].array[i-original][k-original];
-	    		}
-	    	}
-			return SArray((int**)array,newsize);
+    		return SArray();
     	}
     }
-	
-	
+	void squarify(){
+		if (this->Row != this->Col && this->size == 0){
+			int big,small;
+			if (this->Row > this->Col){
+				big = this->Row;
+				small = this->Col;
+			}else{
+				big = this->Col;
+				small = this->Row;
+			}
+
+			int** temp = new int*[big];
+			for(int i = 0 ; i < big ; i++){
+				temp[i] = new int[big]() ;
+			}
+			for(int i = 0;i < this->Col ; i++){
+				for(int j = 0; j < this->Row ; j++){
+					temp[i][j] = this->array[i][j];
+				}
+			}
+
+			this->clear_arr();
+			this->array = temp;
+			this->Row = big;
+			this->Col = big;
+			this->size = big;
+		}
+	}
+	void squarify(int num){
+		if( num >= this->Row && num >= this->Col ){
+			int** temp = new int*[num];
+			for(int i = 0 ; i < num ; i++){
+				temp[i] = new int[num]() ;
+			}
+			for(int i = 0;i < this->Col ; i++){
+				for(int j = 0; j < this->Row ; j++){
+					temp[i][j] = this->array[i][j];
+				}
+			}
+			this->clear_arr();
+			this->array = temp;
+			this->Row = num;
+			this->Col = num;
+			this->size = num;
+		}
+	}
+	void anti_space(int idx,int idy){
+		if(idx < this->Row && idy < this-> Col){
+			int** temp = new int*[idy];
+			for(int i = 0 ; i < idy ; i++){
+				temp[i] = new int[idx]() ;
+			}
+			this->clear_arr();
+			for(int i = 0;i < idx ; i++){
+				for(int j = 0; j < idy ; j++){
+					temp[i][j] = this->array[i][j];
+				}
+			}
+			this->array = temp;
+			this->Row = idx;
+			this->Col = idy;
+			this->size = 0;
+		}
+	}	
 };
 
 int** baseStrassen(int (*a)[2],int (*b)[2],bool Isprint = false){
@@ -324,9 +422,28 @@ int** baseStrassen(int (*a)[2],int (*b)[2],bool Isprint = false){
 	}
 	return ANS;
 }
+void mytest1(int num){
+	clock_t start, finish;   
+    double duration;
 
+	srand(time(NULL));
 
-int main(void){
+	int arr1[num][num],arr2[num][num];
+	start = clock();  
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand();
+			arr2[i][j] = rand();
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	(a*b).Show();
+	finish = clock();  
+	duration = (double)(finish - start) / CLOCKS_PER_SEC;
+	cout<<"Time :"<<duration<<" seconds"<<endl;
+}
+void mytest2(void){
 	int aa[4][4] = {{1,1,1,0},
 					{1,1,1,0},
 					{2,2,2,0},
@@ -338,11 +455,12 @@ int main(void){
 					{1,2,3,4},
 					{1,2,3,4}
 				};
-	int cc[2][4] = {{1,1,1,1},
+	int cc[2][4] = {{1,2,3,4},
 					{1,1,1,1}};
-	int dd[4][2] = {{1,1},
-					{1,1},
-					{1,1},
+
+	int dd[4][2] = {{4,1},
+					{3,1},
+					{2,1},
 					{1,1}};
 
 	int ee[4][8] = {{1,1,1,1,1,1,1,1},
@@ -363,11 +481,53 @@ int main(void){
 	SArray& e = *new SArray((int**)cc,2,4);
 	e.Show();
 	SArray& f = *new SArray((int**)dd,4,2);		
-	f.Show();			
+	f.Show();	
+
 	e.Show();
 	// e.Show();
-	SArray h = e+f;
+	SArray h = e.pMul(f);
 	h.Show();
+	cout<<"====g===="<<endl;
+	SArray g = h*3;
+	g.Show();
+	cout<<"=======squarify======="<<endl;
+	f.squarify();
+	f.Showsize();
+	f.Show();
+
+	e.squarify();
+	e.Showsize();
+	e.Show();
+	// f.anti_Show(2,4);
+
+	SArray hh2 = f*e;
+	hh2.Show();
+	SArray hh1 = f.pMul(e);
+	hh1.Show();
+	hh2.squarify(5);
+	hh1.squarify(5);
+	cout<<"5*5"<<endl;
+	(hh1*hh2).Show();
+	(hh1.pMul(hh2)).Show();
+	cout<<"3/2 = "<<3/2<<endl;
+	int qq[5][5] ={
+		{1,2,3,4,5},
+		{1,211,3,4,5},
+		{121,1232,112,112,11},
+		{1,1,1,1,1},
+		{1,1,1,1,1}
+	};
+	int gg[5][5] ={
+		{1,2,3,4,5},
+		{1,3,1,1,1},
+		{1,1,4,1,1},
+		{1,1,1,7,1},
+		{1,1,2,1,1}
+	};
+	SArray hh3 = SArray((int**)qq,5,5);
+	SArray hh4 = SArray((int**)gg,5,5);
+	(hh3*hh4).Show();
+	(hh3.pMul(hh4)).Show();
 	delete &f;
 	delete &e;
 	
@@ -375,5 +535,9 @@ int main(void){
 	// (b*a).Show();
 	delete &a;
 	delete &b;
-	
+}
+int main(void){
+	//mytest1(500);
+	int a,b,c,d;
+
 }	
