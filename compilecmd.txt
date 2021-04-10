@@ -1,0 +1,7 @@
+g++ Strassen_ff.cpp -std=c++11 -g -o Strassen_ff
+valgrind --tool=memcheck --leak-check=full ./Strassen_ff
+
+g++ Strassen_fast.cpp -std=c++11 -g -o  Strassen_fast
+valgrind --tool=memcheck --leak-check=full ./Strassen_fast
+
+valgrind --tool=memcheck --leak-check=full ./Strassenbytemp

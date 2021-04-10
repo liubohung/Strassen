@@ -88,9 +88,8 @@ public:
 			for(int j=0;j<idy;j++){
 				cout << this->array[i][j] << " ";
 			}
-			cout<<"\n";
+			cout<<endl;
 		}
-
 	}
 
 	int getsize(void) const{ return this->size; }
@@ -98,7 +97,7 @@ public:
 	int getCol(void) const{ return this->Col; }
 	
 	void clear_arr(void){
-		if(this->array != NULL){
+		if(this->array != NULL && this->size >= 0){
 			for(int i =0; i < this->Col ; i++){
 				delete this->array[i];
 			}
@@ -110,7 +109,7 @@ public:
 		this->Col = -1;
 	}
 
-	SArray getsub(int idx,int idy,int size) const {
+	SArray& getsub(int idx,int idy,int size) const {
 		//must to be a square matrix 
 		int temparr[size][size];
 		for(int i = idx;i<(idx+size);i++){
@@ -122,7 +121,7 @@ public:
 				}	
 			}
 		}
-		return SArray((int**)temparr,size);
+		return *new SArray((int**)temparr,size);
 	}
 
 	SArray& operator+=(SArray& a){ 
@@ -145,7 +144,7 @@ public:
 		}
 		return *this;
     }
-    SArray operator+(const SArray& a){
+    SArray& operator+(const SArray& a){
     	if(a.Row == this->Row && a.Col == this->Col){
     		int array[this->Col][this->Row];
 			for(int i = 0; i < this->Col ; i++){
@@ -153,12 +152,12 @@ public:
 					array[i][j] = this->array[i][j] + a.array[i][j];
 				}
 			}
-			return SArray((int**)array,this->Row,this->Col);
+			return *new SArray((int**)array,this->Row,this->Col);
 		}else{
-			return SArray();	
+			return *new SArray();	
 		}
     }
-    SArray operator-(const SArray& a){
+    SArray& operator-(const SArray& a){
 		if(a.Row == this->Row && a.Col == this->Col){
     		int array[this->Col][this->Row];
 			for(int i = 0; i < this->Col ; i++){
@@ -166,12 +165,12 @@ public:
 					array[i][j] = this->array[i][j] - a.array[i][j];
 				}
 			}
-			return SArray((int**)array,this->Row,this->Col);
+			return *new SArray((int**)array,this->Row,this->Col);
 		}else{
-			return SArray();	
+			return *new SArray();	
 		}
     }
-    SArray pMul(const SArray& a){ 
+    SArray& pMul(const SArray& a){ 
     	if(this->Row == a.Col){
     		int array[this->Col][a.Row];
     		for(int i = 0 ; i < this->Col; i++){
@@ -183,12 +182,12 @@ public:
 					array[i][j] = num;
 				}
 			}
-			return SArray((int**)array,this->Col,a.Row);
+			return *new SArray((int**)array,this->Col,a.Row);
     	}else{
-    		return SArray();
+    		return *new SArray();
     	}	
     }
-    SArray operator*(int num){
+    SArray& operator*(int num){
     	int array[this->Col][this->Row];
     	if(this->array != NULL){
     		for(int i = 0;i<this->Col;i++){
@@ -197,7 +196,7 @@ public:
 				}
 			}
     	}
-    	return SArray((int**)array,this->Col,this->Row);
+    	return *new SArray((int**)array,this->Col,this->Row);
     }
     SArray& operator=(SArray other){
     	if(this->Col != other.Col || this->Row != other.Row){
@@ -219,9 +218,9 @@ public:
 		}
 		return *this;
 	}
-    SArray operator*(const SArray& a){ 
+    SArray& operator*(const SArray& a){ 
     	if(this->Row == a.Col){
-	    	if(a.getsize()<=125){//最大125
+	    	if(a.getsize()<=2){
 	    		return this->pMul(a);
 	    	}else{
 	    		SArray Mnum[7];
@@ -293,11 +292,10 @@ public:
 		    			array[i][k] = ANS[3].array[i-original][k-original];
 		    		}
 		    	}
-		    	
-				return SArray((int**)array,newsize);
+				return *new SArray((int**)array,newsize);
 	    	}
     	}else{
-    		return SArray();
+    		return *new SArray();
     	}
     }
 	void squarify(){
@@ -547,14 +545,6 @@ void Run_test(){
 void Main(void){
 	int arg[4];
 	scanf("%d %d %d %d\n",&arg[0],&arg[1],&arg[2],&arg[3]);
-	int large=0;
-	for(int i =0;i<4;i++){
-		if(arg[i] > large) large = arg[i];
-	}
-	if(large == 0) return ;
-	if((large &1) == 1){
-		large++;
-	}
 	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
 	for(int i =0;i<arg[0];i++){
 		for(int j=0;j<arg[1];j++){
@@ -569,40 +559,19 @@ void Main(void){
 
 	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
 	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
-	
+	int large=0;
+	for(int i =0;i<4;i++){
+		if(arg[i] > large) large = arg[i];
+	}
+	if((large &1) == 1){
+		large++;
+	}
 	F_matrix.squarify(large);
 	S_matrix.squarify(large);
 	
 	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
 }
 int main(void){
-	int arg[4];
-	scanf("%d %d %d %d\n",&arg[0],&arg[1],&arg[2],&arg[3]);
-	int large=0;
-	for(int i =0;i<4;i++){
-		if(arg[i] > large) large = arg[i];
-	}
-	if(large == 0) return 0;
-	if((large &1) == 1){
-		large++;
-	}
-	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
-	for(int i =0;i<arg[0];i++){
-		for(int j=0;j<arg[1];j++){
-			cin>>arr1[i][j];
-		}
-	}
-	for(int i =0;i<arg[2];i++){
-		for(int j=0;j<arg[3];j++){
-			cin>>arr2[i][j];
-		}
-	}
-
-	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
-	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
-	
-	F_matrix.squarify(large);
-	S_matrix.squarify(large);
-	
-	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
+	//mytest1(500);
+	Main();
 }	
