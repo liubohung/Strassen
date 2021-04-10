@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "ostream": "cpp",
+        "iostream": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "ranges": "cpp",
+        "utility": "cpp"
+    },
+    "C_Cpp.clang_format_path": "/usr/local/Cellar/clang-format/11.1.0",
+    "C_Cpp.clang_format_fallbackStyle":"{ BasedOnStyle: Google, IndentWidth: 2, ColumnLimit: 0}"
+}

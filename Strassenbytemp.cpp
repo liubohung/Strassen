@@ -6,52 +6,91 @@ using namespace std;
 
 class SArray{
 	/*
-		for long standing Object
+		*For long standing Object
+			Is mean the Object have itself's array not point to an other Objects array 
+			If size is 0 is mean Row and Col is not equal(not a square matrix).
+			If SArray is an empty not Initialization the size and all member will be 
+			set -1 (Istemp will be false).
+			
+			long standing Object attribute
+			<<=======================>>
+				SArray.array  to array storage the real data
+				SArray.size   to check matrix is square or not ,store the size of square matrix.
+				SArray.Row and SArray.Col to record  space.
+				SArray.Istemp to check SArray is temporary or not.
+			<<=======================>>
 
-		if size is 0 is mean Row and Col is not equal (not a square matrix).
-		if SArray is an empty not Initialization the size and all member will be 
-		set -1(Istemp will be false) 
+		*For temporary Object 
+			temporary Object must be the square matrix
+			The size is to Storage the size of sub matrix 
+			Row and Col is a first index 
+			If the Object is temp.So Istemp will be true and the empty Object 
+			will default be true
 
+			temporary Object attribute
+			<<=======================>>
+				SArray.array  to point to real data from original Object .
+				SArray.size   to record the size of subarray.
+				SArray.Row and SArray.Col to record the begin of space.
+				SArray.Istemp to check SArray is temporary or not.
+			<<=======================>>
+
+		The long standing Object can derive long standing Object(Copy or getsub_new)
+		and temporary Object(getsub)
+		The temporary Object only allow derive the temporary Object
 		
-		for temporary Object
+	            	
+		explain:
+			[	L L L L   ]  The element L is long standing Object's value
+			[	L T T L   ]	 The temporary Object is the part of long standing Object
+			[	L T T L   ]	 and the element T is mean it is a part of long standing 
+			[	L L L L   ]	 Object and temporary Object in same time.
 
-		the size is mean the long standing Object original size 
-		and the Row and Col is get from where the part of it 
-		if the Object is temp the Istemp will be true else not 
-		the empty Object will default be true
+		Example the Rule:
+			1. Size is 0 So the Row and Col is not Equal.It is an any shape matrix 
+			2. Size is not 0 as well as the Row and Col is Equal.It is a squeue matrix
+			3. The Istemp is true. SO this is a temporary Object and it should be a 
+			   squeue matrix. And the pointer array will point to original Object.
+	
+		Data Storage method :
+			Col 為列數 Row 為行數 [col][row]
+			  \ row
+			col	        
+				X X X X   	O O 		Z Z Z Z 		 col\row ----->
+				X X X X.  	O O 		Z Z Z Z  		  ||
+					[2][4]	O O 		Z Z Z Z 		  ||
+							O O [4][2]  Z Z Z Z  [4][4]   \/
 	*/
 public:
 	int **array;
-	int size;	
+	int size;
 	int Row,Col;
-	bool Istemp;//
+	bool Istemp;
 
-	SArray(){
+	SArray(){ //Empty Constructor
 		this->array = NULL;
 		this->size = -1;
 		this->Row = -1;
 		this->Col = -1;
 		this->Istemp = true;
 	}
-	SArray(int** arr,bool Istemp,int Row ,int Col,int size){
+	SArray(int** arr,bool Istemp,int col,int row,int size){
 		/* 
-			this constructor is for the temporary Object 
-			and will use in the method getsub()
+			This constructor is only for the temporary Object 
+			use in the method getsub() .
 			
-			the getsub can't use in the size is zero's Object
-			it will be get mistake result
-			
-			this constructor is use to helped the getsub be fast 
+			This constructor is use to helped the getsub be fast 
 			when multiply the big Object 
 
-			the size is the original matrix's size help to
-			count the this sub matrix must to use carefully
+			The size is store the the original matrix's size.It's to 
+			help to count the this sub matrix position. 
+			Must to use carefully using.
 		*/
 		if(arr != NULL){
 			this->array = arr ;
 			this->size = size ;
-			this->Row = Row ;
-			this->Col = Col ;
+			this->Row = row ;
+			this->Col = col ;
 			this->Istemp = true;
 		}else{
 			this->array = NULL;
@@ -63,37 +102,38 @@ public:
 	}
 	SArray(int length):size(length),Row(length),Col(length){
 		this->array = new int*[length] ;
-		for(int i =0;i<size;i++){
-			this->array[i] = new int[length]() ;
+		for(int i = 0;i<size;i++){
+			this->array[i] = new int[length]();
 		}
 		this->Istemp = false;
 	}
 	SArray(int** arr,int length):size(length),Row(length),Col(length){
-		//make a square matrix and initialize it 
+		/*
+			make a square matrix and initialize array by paramatter arr.
+			arrtribute arr must be square matrix.
+		*/
 		this->array = new int*[length] ;
 		this->Istemp = false;
-		for(int i =0;i<length;i++){
+
+		for(int i =0;i<length;i++)
 			this->array[i] = new int[length]();
-		}
-		for(int i = 0 ;i < length; i++){
-			for(int j = 0;j < length;j++){
-				this->array[i][j] = *(((int*)arr+(i*length+j)));
+		
+		if(length == 1){ // if size is 1
+			this->array[0][0] = arr[0][0];
+		}else{
+			for(int i = 0 ;i < length; i++){
+				for(int j = 0;j < length;j++){
+					this->array[i][j] = *(((int*)arr+(i*length+j)));
+				}
 			}
 		}
 	}
 	SArray(int** arr,int col,int row):Row(row),Col(col){
-		/*. Col 為列數 Row 為行數 [col][row]
-		  \ row
-		col	
-			X X X X   O O
-			X X X X.  O O
-					  O O
-					  O O 
-		*/
+		//Make a matrix and initialize array by paramatter arr.
+		//This matrix probably not a square matrix but it still can being.
 		this->Istemp = false;
-		if(col == row){
-			this->size = row;
-		}
+		if(col == row) this->size = row;
+
 		this->array = new int*[col] ;
 		for(int i =0;i<col;i++){
 			this->array[i] = new int[row]() ;
@@ -110,43 +150,76 @@ public:
 		}	
 	}
 	void Show(void){
-		if(this->size== -1 || this->array == NULL){
+		if( this->size == -1 || this->array == NULL){
 			cout<<"Is empty"<<endl;
-		}else if(this->Istemp){//not complete i think it have some error
-			int** ptr = this->array; 
-			for(int i=0;i<this->Col;i++){
-				for(int j=0;j<this->Row;j++){
-					cout<< *(((int*)ptr +j))<<" ";
-					// *(((int*)ptr+(i*length+j)));
+		}else if(this->Istemp){//not complete i think it have some error 
+			cout<<"Print temporary Object " << endl;
+			if (this->size == 1) {
+				cout<<this->Col<<" "<<this->Row<<endl;
+				cout<<this->array[this->Col][this->Row]<<endl;
+			} else {
+				for (int i = this->Col ; i < size + this->Col ; i++) {
+					for(int j = this->Row ; j < size + this->Row ; j++){
+						cout<< this->array[i][j] <<" ";
+					}
+					cout<<endl;
 				}
-				ptr++;
-				cout<<endl;
 			}
 		}else{
-			for(int i=0;i<this->Col;i++){
-				for(int j=0;j<this->Row;j++){
-					cout<<this->array[i][j]<<" ";
+			if(this->Col == 1 && this->Row == 1){
+				cout<<this->array[0][0]<<endl;
+			}else{
+				for(int i=0;i<this->Col;i++){
+					for(int j=0;j<this->Row;j++){
+						cout<<this->array[i][j]<<" ";
+					}
+					cout<<endl;
 				}
-				cout<<endl;
 			}
-			cout<<endl;
 		}
+		cout<<endl;
 	}
 	void Showsize(){
-		cout<<"Size :"<<this->size<<endl;
-		cout<<" Col :"<<this->Col<<endl;
-		cout<<" Row :"<<this->Row<<endl;
+		if(this->size == 0){
+			cout<<"It's not a square matrix. " << endl;
+		}else if(this->size > 0){
+			cout<<"It's a square matrix. " << endl;
+		}else if(this->size < 0){
+			cout<<"It's  empty. " << endl;
+		}
+		cout<<"Size :"<< this->size <<endl;
+		if(this->Istemp){
+			cout<<"idy  :"<< this->Col <<endl;
+			cout<<"idx  :"<< this->Row <<endl;
+			cout<<"The Array address : "<<this->array<<endl;
+			cout<<"!! It's a temporary Object "<<endl;
+		}else{
+			cout<<"Col  :"<< this->Col <<endl;
+			cout<<"Row  :"<< this->Row <<endl;
+			cout<<"The Array address : "<<this->array<<endl;
+		}
 		cout<<endl;
 	}
 	void anti_Show(int idy,int idx){
-		if(idy < this->Row && idx < this->Col ){
-			for(int i =0;i<idx;i++){
-				for(int j=0;j<idy;j++){
-					cout << this->array[i][j] << " ";
+		if(this->Istemp){
+			if(idy < this->size && idx < this->size ){
+				for(int i = this->Col ; i < idx ; i++){
+					for(int j = this->Row ;j<idy ; j++){
+						cout << this->array[i][j] << " ";
+					}
+					cout<<"\n";
 				}
-				cout<<"\n";
 			}
-		}
+		}else{
+			if(idy < this->Row && idx < this->Col ){
+				for(int i =0;i<idx;i++){
+					for(int j=0;j<idy;j++){
+						cout << this->array[i][j] << " ";
+					}
+					cout<<"\n";
+				}
+			}
+		}	
 	}
 
 	inline int getsize(void) const{ return this->size; }
@@ -155,9 +228,12 @@ public:
 	
 	void clear_arr(void){
 		/*
-			clear the Object and set the Object
+			Clear the Object and set the Object to unavailable status
+		
+			if the Object is temporary Object,then it can't not be clear
+			So let the pointer array to NULL not delete
 		*/
-		if(this->array != NULL){
+		if( this->array != NULL && (!this->Istemp) ){
 			for(int i =0; i < this->Col ; i++){
 				delete this->array[i];
 			}
@@ -169,67 +245,128 @@ public:
 		this->Col = -1;
 		this->Istemp = false;
 	}
-
 	SArray getsub_new(int idx,int idy,int size) const {
-		//must have be a square matrix 
-		if(this->size == 1 || size == 1){
-			int temp[1][1];
-			temp[0][0] = (idx > this->Row || idy > this->Col || this->Istemp ) ? 0:this->array[idy][idx];
-			return SArray((int**)temp,1);
+		/*
+			0. Index start with 0.
+			1. The method getsub_new can used when the size is zero's Object. 
+			2. If row or col out of range,the value will be full of 0.
+			3. If the temporary Object call this method. it will return the empty 
+			   Object.
+			4. It will get the long standing Object
+		*/ 
+		if(this->Istemp && this->array == NULL){//Can't build a temp Object to long standing Object
+			return SArray();
 		}else{
-			int temparr[size][size];
-			for(int i = idy ; i < (idy+size) ; i++){
-				for(int j = idx ; j < (idx+size) ; j++){
-					if(i > this->Row || j > this->Col || this->Istemp ){
-						temparr[i-idx][j-idy] = 0;
-						cout<<temparr[i-idx][j-idy]<<" ";
-					}else{
-						temparr[i-idx][j-idy] = this->array[i][j];
-						cout<<temparr[i-idx][j-idy]<<" ";
-					}	
+			if(this->size == 1 || size == 1){//To deal the situation when the size is 1 
+				int temp[1][1];
+				temp[0][0] = (idx > this->Row || idy > this->Col || this->Istemp ) ? 0:this->array[idy][idx];
+				return SArray((int**)temp,1);
+			}else{
+				int temparr[size][size];
+				for(int i = idy ; i < (idy+size) ; i++){
+					for(int j = idx ; j < (idx+size) ; j++){
+						if(i > this->Row || j > this->Col || this->Istemp ){
+							temparr[i-idx][j-idy] = 0;
+							cout<<temparr[i-idx][j-idy]<<" ";
+						}else{
+							temparr[i-idx][j-idy] = this->array[i][j];
+							cout<<temparr[i-idx][j-idy]<<" ";
+						}	
+					}
+				}
+				return SArray((int**)temparr,size);
+			}
+		}
+	}
+	SArray getsub(int idx,int idy,int size) const {
+		/*	
+		0. Index start with 0.
+		1. The idx,idy and size.Range have be insided this array if not then retrun the
+		   empty SArray.
+		2. The getsub can't using when Object size is zero.Because it probably
+		   get a mistake result.
+		3. It will get the square matrix from the this Object (no matter the Object
+		   is temporary Object or long standing Object).
+
+		2. Return the temporary Object and set the same size in temporary Object(the
+		   size is use to count the right position ,when temporary Object need to 
+		   get a value).
+		3. !! The origin Object can't delete when the temporary Object are using,and must
+		   be carefully.
+		5. Can't changing any temporary Object's value. 
+		*/
+		if( idx+size > this->Row+this->size ||  size+idy > this->Col+this->size || this->getsize() <= 0 || size == 0 || size > this->size||this->array == NULL){
+			return SArray(); 
+		}
+		if(this->Istemp == true ){
+			return SArray(this->array,true,this->Col+idy,this->Row+idx,size);
+		}else{
+			return SArray(this->array,true,idy,idx,size);
+		}
+	}
+	bool operator ==(const SArray& a){
+		if ( a.Istemp | this->Istemp ) {// One is temporary Object
+			if ( a.Istemp ^ this->Istemp) { // Other one is not temporary Object
+				if ( this->size == 0 || a.size == 0 || !(this->size == a.size) ) 
+					return false; // Both are the square matrix and have same size
+				cout<<"good"<<endl;
+				// ** this part can be better
+				if (this->Istemp) {//this is a submatrix
+					for (int i =this->Col , j=a.Col ; i < size;i++,j++) {
+						for (int k=this->Row , q=a.Row ; k < size;k++,q++) {
+							if ( this->array[i][k] != a.array[j][q]) return false;
+						}
+					}
+				} else { //Parameter a is a submatrix
+					for(int i =this->Col , j=a.Col ; i < size;i++,j++) {
+						for(int k=this->Row , q=a.Row ; k < size;k++,q++) {
+							if(this->array[i][k] != a.array[j][q]) return false;
+						}
+					}
+				}
+			}else{ // Both are the temporary Object
+				if(this->array == a.array && this->Row == a.Row && this->Col == a.Col && this->size == a.size) 
+					return true; //same palce same size
+				if( this->size != a.size ) return false;
+				for(int i =this->Col , j=a.Col ; i < size;i++) {
+					for(int k=this->Row , q=a.Row ; k < size;k++) {
+						if(this->array[i][k] != a.array[j][q]) return false;
+					}
 				}
 			}
-			return SArray((int**)temparr,size);
-		}
-	}
-
-	SArray getsub(int idx,int idy,int size) const {
-		//must to be a square matrix 
-		int temparr[size][size];
-		for(int i = idx;i<(idx+size);i++){
-			for(int j = idy;j<(idy+size);j++){
-				if(i > this->size || j > this->size ){
-					temparr[i-idx][j-idy] = 0;
-				}else{
-					temparr[i-idx][j-idy] = this->array[i][j];
-				}	
-			}
-		}
-		return SArray((int**)temparr,size);
-	}
-	bool operator == (const SArray& a){
-		if( a.Istemp | this->Istemp ) {
-			cout<< "can't campare to temporary Object"<<endl;
-			return false;
-		}
-		if(this->Row != a.Row || this->Col != a.Col) return false;
-		if(this->size == a.size && this->size != 0){// to check square matrix
-			for(int i =0;i<this->size;i++){
-				for(int j =0;j<this->size;j++){
-					if( this->array[i][j] != a.array[i][j] ) return false;
+		}else{// both are long standing Object
+			if(this->Row != a.Row || this->Col != a.Col) return false;
+			if(this->size == a.size && this->size != 0){// to check square matrix
+				for(int i =0;i<this->size;i++){
+					for(int j =0;j<this->size;j++){
+						if( this->array[i][j] != a.array[i][j] ) return false;
+					}
 				}
 			}
 		}
 		return true;
 	}
 	SArray& operator+=(const SArray& a){ 
-		if(a.Row == this->Row && a.Col == this->Col){
-			for(int i = 0; i < this->Col ; i++){
-				for(int j = 0 ; j < this->Row ; j++){
-					this->array[i][j] += a.array[i][j];
+		if (this->size == -1) return *this;
+		if (!this->Istemp) {
+			if (a.Istemp) { //a is a temporary Object 
+				if( this->size == a.size ){
+					for (int i =0 , j=a.Col ; i < this->size ; i++,j++) {
+						for (int k =0 , q=a.Row ; k < this->size;k++,q++) {
+							this->array[i][k] += a.array[j][q] ;
+						}
+					}
+				}
+			} else {
+				if (a.Row == this->Row && a.Col == this->Col) {
+					for (int i = 0; i < this->Col ; i++) {
+						for (int j = 0 ; j < this->Row ; j++) {
+							this->array[i][j] += a.array[i][j];
+						}
+					}
 				}
 			}
-		}
+		}	
 		return *this;
     }
     SArray& operator-=(const SArray& a){ 
@@ -519,6 +656,98 @@ void mytest_matrix_equal(unsigned int num){
 		cout << "right: sub Is not equal origin"<<endl;
 	}
 }
+void mytest_matrix_getSub(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand();
+			arr2[i][j] = arr1[i][j];
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = a.getsub(0,0,2);
+	a.Showsize();
+	a.Show();
+	b.Showsize();
+	b.Show();
+	SArray c = b.getsub(0,0,1);
+	c.Showsize();
+	c.Show();
+}
+void mytest_matrix_operator_equal(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand();
+			arr2[i][j] = rand();
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	SArray c = b.getsub(0,0,2);
+	SArray d = a.getsub(0,0,2);
+	SArray e = a.getsub(0,0,num);
+	SArray h = b.getsub(0,0,2);
+	a.Show();
+	b.Show();
+	c.Showsize();
+	c.Show();
+	d.Show();
+	e.Show();
+	if (a == a) { 
+		cout<< "1. right : a is equal a"<<endl;
+	} else {
+		cout<< "1. error : a is not equal a"<<endl;
+	}
+	if (a == b) { 
+		cout<< "2. error : a is equal b"<<endl;
+	} else {
+		cout<< "2. right : a is not equal b"<<endl;
+	}
+	if (a == c) { 
+		cout<< "3. error : a is equal c"<<endl;
+	} else {
+		cout<< "3. right : a is not equal c"<<endl;
+	}
+	if (d == c) { 
+		cout<< "4. error : d is equal c"<<endl;
+	} else {
+		cout<< "4. right : d is not equal c"<<endl;
+	}
+	if (e == a) { 
+		cout<< "5. right : a is equal e"<<endl;
+	}else {
+		cout<< "5. error : a is not equal e"<<endl;
+	}
+	if (c == h) { 
+		cout<< "6. right : c is equal h"<<endl;
+	}else {
+		cout<< "6. error : c is not equal h"<<endl;
+	}
+
+}
+void mytest_matrix_add_equal(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	int max=1000,min=0;
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand() % (max - min + 1) + min;
+			arr2[i][j] = rand() % (max - min + 1) + min;
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	a.getsub(0,0,num).Showsize();
+	SArray c = a.getsub(0,0,num);
+	a.Show();
+	b.Show();
+	a+=b;
+	a.Show();
+	c.Show();
+	b+=c;
+	b.Show();
+}
+
 void mytest1(unsigned int num){
 	clock_t start, finish;   
     double duration;
@@ -538,7 +767,7 @@ void mytest1(unsigned int num){
 	(a*b).Show();
 	finish = clock();  
 	duration = (double)(finish - start) / CLOCKS_PER_SEC;
-	cout<<"Time :"<<duration<<" seconds"<<endl;
+	cout<<"Time :" << duration << " seconds."<<endl;
 }
 void mytest2(void){
 	int aa[4][4] = {{1,1,1,0},
@@ -668,6 +897,8 @@ void Main(void){
 int main(void){
 	int i=0;
 	cin>>i;
-	//mytest1(i);
-	mytest_matrix_equal(i);
+	// mytest_matrix_getSub(i);
+	// mytest_matrix_equal(i);
+	//mytest_matrix_operator_equal(i);
+	mytest_matrix_add_equal(i);
 }	
