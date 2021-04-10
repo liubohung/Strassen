@@ -6,28 +6,72 @@ using namespace std;
 
 class SArray{
 	/*
-		if size is 0 is mean Row and Col is not equal(not a square matrix).
-		if SArray is an empty not Initialization the size
-		will be -1 also then Col and Row.
+		for long standing Object
+
+		if size is 0 is mean Row and Col is not equal (not a square matrix).
+		if SArray is an empty not Initialization the size and all member will be 
+		set -1(Istemp will be false) 
+
+		
+		for temporary Object
+
+		the size is mean the long standing Object original size 
+		and the Row and Col is get from where the part of it 
+		if the Object is temp the Istemp will be true else not 
+		the empty Object will default be true
 	*/
 public:
 	int **array;
-	int size;
+	int size;	
 	int Row,Col;
+	bool Istemp;//
+
 	SArray(){
 		this->array = NULL;
 		this->size = -1;
 		this->Row = -1;
 		this->Col = -1;
+		this->Istemp = true;
+	}
+	SArray(int** arr,bool Istemp,int Row ,int Col,int size){
+		/* 
+			this constructor is for the temporary Object 
+			and will use in the method getsub()
+			
+			the getsub can't use in the size is zero's Object
+			it will be get mistake result
+			
+			this constructor is use to helped the getsub be fast 
+			when multiply the big Object 
+
+			the size is the original matrix's size help to
+			count the this sub matrix must to use carefully
+		*/
+		if(arr != NULL){
+			this->array = arr ;
+			this->size = size ;
+			this->Row = Row ;
+			this->Col = Col ;
+			this->Istemp = true;
+		}else{
+			this->array = NULL;
+			this->size = -1 ;
+			this->Row = -1 ;
+			this->Col = -1 ;
+			this->Istemp = true;
+		}
 	}
 	SArray(int length):size(length),Row(length),Col(length){
 		this->array = new int*[length] ;
 		for(int i =0;i<size;i++){
 			this->array[i] = new int[length]() ;
 		}
+		this->Istemp = false;
 	}
 	SArray(int** arr,int length):size(length),Row(length),Col(length){
+		//make a square matrix and initialize it 
 		this->array = new int*[length] ;
+		this->Istemp = false;
 		for(int i =0;i<length;i++){
 			this->array[i] = new int[length]();
 		}
@@ -46,6 +90,7 @@ public:
 					  O O
 					  O O 
 		*/
+		this->Istemp = false;
 		if(col == row){
 			this->size = row;
 		}
@@ -65,8 +110,18 @@ public:
 		}	
 	}
 	void Show(void){
-		if(this->size== -1){
+		if(this->size== -1 || this->array == NULL){
 			cout<<"Is empty"<<endl;
+		}else if(this->Istemp){//not complete i think it have some error
+			int** ptr = this->array; 
+			for(int i=0;i<this->Col;i++){
+				for(int j=0;j<this->Row;j++){
+					cout<< *(((int*)ptr +j))<<" ";
+					// *(((int*)ptr+(i*length+j)));
+				}
+				ptr++;
+				cout<<endl;
+			}
 		}else{
 			for(int i=0;i<this->Col;i++){
 				for(int j=0;j<this->Row;j++){
@@ -84,20 +139,24 @@ public:
 		cout<<endl;
 	}
 	void anti_Show(int idy,int idx){
-		for(int i =0;i<idx;i++){
-			for(int j=0;j<idy;j++){
-				cout << this->array[i][j] << " ";
+		if(idy < this->Row && idx < this->Col ){
+			for(int i =0;i<idx;i++){
+				for(int j=0;j<idy;j++){
+					cout << this->array[i][j] << " ";
+				}
+				cout<<"\n";
 			}
-			cout<<"\n";
 		}
-
 	}
 
-	int getsize(void) const{ return this->size; }
-	int getRow(void) const{ return this->Row; }
-	int getCol(void) const{ return this->Col; }
+	inline int getsize(void) const{ return this->size; }
+	inline int getRow(void) const{ return this->Row; }
+	inline int getCol(void) const{ return this->Col; }
 	
 	void clear_arr(void){
+		/*
+			clear the Object and set the Object
+		*/
 		if(this->array != NULL){
 			for(int i =0; i < this->Col ; i++){
 				delete this->array[i];
@@ -108,6 +167,30 @@ public:
 		this->size = -1;
 		this->Row = -1;
 		this->Col = -1;
+		this->Istemp = false;
+	}
+
+	SArray getsub_new(int idx,int idy,int size) const {
+		//must have be a square matrix 
+		if(this->size == 1 || size == 1){
+			int temp[1][1];
+			temp[0][0] = (idx > this->Row || idy > this->Col || this->Istemp ) ? 0:this->array[idy][idx];
+			return SArray((int**)temp,1);
+		}else{
+			int temparr[size][size];
+			for(int i = idy ; i < (idy+size) ; i++){
+				for(int j = idx ; j < (idx+size) ; j++){
+					if(i > this->Row || j > this->Col || this->Istemp ){
+						temparr[i-idx][j-idy] = 0;
+						cout<<temparr[i-idx][j-idy]<<" ";
+					}else{
+						temparr[i-idx][j-idy] = this->array[i][j];
+						cout<<temparr[i-idx][j-idy]<<" ";
+					}	
+				}
+			}
+			return SArray((int**)temparr,size);
+		}
 	}
 
 	SArray getsub(int idx,int idy,int size) const {
@@ -124,8 +207,22 @@ public:
 		}
 		return SArray((int**)temparr,size);
 	}
-
-	SArray& operator+=(SArray& a){ 
+	bool operator == (const SArray& a){
+		if( a.Istemp | this->Istemp ) {
+			cout<< "can't campare to temporary Object"<<endl;
+			return false;
+		}
+		if(this->Row != a.Row || this->Col != a.Col) return false;
+		if(this->size == a.size && this->size != 0){// to check square matrix
+			for(int i =0;i<this->size;i++){
+				for(int j =0;j<this->size;j++){
+					if( this->array[i][j] != a.array[i][j] ) return false;
+				}
+			}
+		}
+		return true;
+	}
+	SArray& operator+=(const SArray& a){ 
 		if(a.Row == this->Row && a.Col == this->Col){
 			for(int i = 0; i < this->Col ; i++){
 				for(int j = 0 ; j < this->Row ; j++){
@@ -135,7 +232,7 @@ public:
 		}
 		return *this;
     }
-    SArray& operator-=(SArray& a){ 
+    SArray& operator-=(const SArray& a){ 
 		if(a.Row == this->Row && a.Col == this->Col){
 			for(int i = 0; i < this->Col ; i++){
 				for(int j =0 ; j < this->Row ; j++){
@@ -148,11 +245,19 @@ public:
     SArray operator+(const SArray& a){
     	if(a.Row == this->Row && a.Col == this->Col){
     		int array[this->Col][this->Row];
-			for(int i = 0; i < this->Col ; i++){
-				for(int j = 0 ; j < this->Row ; j++){
-					array[i][j] = this->array[i][j] + a.array[i][j];
+    		if(this->Istemp | a.Istemp){
+				for(int i = 0; i < this->Col ; i++){
+					for(int j = 0 ; j < this->Row ; j++){
+						array[i][j] = this->array[i][j] + a.array[i][j];
+					}
+				}	
+    		}else{
+				for(int i = 0; i < this->Col ; i++){
+					for(int j = 0 ; j < this->Row ; j++){
+						array[i][j] = this->array[i][j] + a.array[i][j];
+					}
 				}
-			}
+    		}
 			return SArray((int**)array,this->Row,this->Col);
 		}else{
 			return SArray();	
@@ -394,7 +499,27 @@ int** baseStrassen(int (*a)[2],int (*b)[2],bool Isprint = false){
 	}
 	return ANS;
 }
-void mytest1(int num){
+
+void mytest_matrix_equal(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand();
+			arr2[i][j] = arr1[i][j];
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	if(a == b) {
+		cout << "right: Is equal"<<endl;
+	}
+	if(a == (b.getsub_new(0,0,2))) {
+		cout << "false: Is not equal"<<endl;
+	}else{
+		cout << "right: sub Is not equal origin"<<endl;
+	}
+}
+void mytest1(unsigned int num){
 	clock_t start, finish;   
     double duration;
 
@@ -508,42 +633,6 @@ void mytest2(void){
 	delete &a;
 	delete &b;
 }
-void Run_test(){
-	int arg[4]={30,30,30,70};
-	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
-	int max=10,min= 0;
-	for(int i =0;i<arg[0];i++){
-		for(int j=0;j<arg[1];j++){
-			arr1[i][j]=rand()% (max - min + 1) + min;
-		}
-	}
-	for(int i =0;i<arg[2];i++){
-		for(int j=0;j<arg[3];j++){
-			arr2[i][j]=rand()% (max - min + 1) + min;
-		}
-	}
-
-	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
-	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
-	F_matrix.Show();
-	S_matrix.Show();
-	int large=0;
-	for(int i =0;i<4;i++){
-		if(arg[i] > large) large = arg[i];
-	}
-
-	if( arg[0] != arg[1] && arg[2] != arg[3]){
-		if((large &1) == 1){
-			large++;
-		}
-		F_matrix.squarify(large);
-		S_matrix.squarify(large);
-	}
-	F_matrix.Show();
-	S_matrix.Show();
-	// (F_matrix*S_matrix).Show();
-	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
-}
 void Main(void){
 	int arg[4];
 	scanf("%d %d %d %d\n",&arg[0],&arg[1],&arg[2],&arg[3]);
@@ -551,7 +640,7 @@ void Main(void){
 	for(int i =0;i<4;i++){
 		if(arg[i] > large) large = arg[i];
 	}
-	if(large == 0) return ;
+	if(large == 0) return;
 	if((large &1) == 1){
 		large++;
 	}
@@ -575,34 +664,10 @@ void Main(void){
 	
 	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
 }
-int main(void){
-	int arg[4];
-	scanf("%d %d %d %d\n",&arg[0],&arg[1],&arg[2],&arg[3]);
-	int large=0;
-	for(int i =0;i<4;i++){
-		if(arg[i] > large) large = arg[i];
-	}
-	if(large == 0) return 0;
-	if((large &1) == 1){
-		large++;
-	}
-	int arr1[arg[0]][arg[1]],arr2[arg[2]][arg[3]];
-	for(int i =0;i<arg[0];i++){
-		for(int j=0;j<arg[1];j++){
-			cin>>arr1[i][j];
-		}
-	}
-	for(int i =0;i<arg[2];i++){
-		for(int j=0;j<arg[3];j++){
-			cin>>arr2[i][j];
-		}
-	}
 
-	SArray F_matrix = SArray((int**) arr1,arg[0],arg[1]);
-	SArray S_matrix = SArray((int**) arr2,arg[2],arg[3]);
-	
-	F_matrix.squarify(large);
-	S_matrix.squarify(large);
-	
-	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
+int main(void){
+	int i=0;
+	cin>>i;
+	//mytest1(i);
+	mytest_matrix_equal(i);
 }	
