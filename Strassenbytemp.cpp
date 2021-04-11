@@ -155,7 +155,6 @@ public:
 		}else if(this->Istemp){//not complete i think it have some error 
 			cout<<"Print temporary Object " << endl;
 			if (this->size == 1) {
-				cout<<this->Col<<" "<<this->Row<<endl;
 				cout<<this->array[this->Col][this->Row]<<endl;
 			} else {
 				for (int i = this->Col ; i < size + this->Col ; i++) {
@@ -201,19 +200,19 @@ public:
 		cout<<endl;
 	}
 	void anti_Show(int idy,int idx){
-		if(this->Istemp){
-			if(idy < this->size && idx < this->size ){
-				for(int i = this->Col ; i < idx ; i++){
-					for(int j = this->Row ;j<idy ; j++){
+		if (this->Istemp) {
+			if (idy < this->size && idx < this->size ) { 
+				for (int i = this->Col ; i < idx ; i++) {
+					for (int j = this->Row ;j < idy ; j++) {
 						cout << this->array[i][j] << " ";
 					}
 					cout<<"\n";
 				}
 			}
 		}else{
-			if(idy < this->Row && idx < this->Col ){
-				for(int i =0;i<idx;i++){
-					for(int j=0;j<idy;j++){
+			if (idy < this->Row && idx < this->Col ) {
+				for (int i =0;i<idx;i++) {
+					for (int j=0;j<idy;j++) { 
 						cout << this->array[i][j] << " ";
 					}
 					cout<<"\n";
@@ -347,8 +346,8 @@ public:
 		return true;
 	}
 	SArray& operator+=(const SArray& a){ 
-		if (this->size == -1) return *this;
-		if (!this->Istemp) {
+		if (this->size == -1) return *this; // if this Object can not using
+		if (!this->Istemp) { // if this is a temporary Object (temporary Object can't change)
 			if (a.Istemp) { //a is a temporary Object 
 				if( this->size == a.size ){
 					for (int i =0 , j=a.Col ; i < this->size ; i++,j++) {
@@ -370,65 +369,157 @@ public:
 		return *this;
     }
     SArray& operator-=(const SArray& a){ 
-		if(a.Row == this->Row && a.Col == this->Col){
-			for(int i = 0; i < this->Col ; i++){
-				for(int j =0 ; j < this->Row ; j++){
-					this->array[i][j] -= a.array[i][j];
+		if (this->size == -1) return *this;// if this Object can not using
+		if (!this->Istemp) { // if this is a temporary Object (temporary Object can't change)
+			if (a.Istemp) { //a is a temporary Object 
+				if( this->size == a.size ){
+					for (int i =0 , j=a.Col ; i < this->size ; i++,j++) {
+						for (int k =0 , q=a.Row ; k < this->size;k++,q++) {
+							this->array[i][k] -= a.array[j][q] ;
+						}
+					}
+				}
+			} else {
+				if (a.Row == this->Row && a.Col == this->Col) {
+					for (int i = 0; i < this->Col ; i++) {
+						for (int j = 0 ; j < this->Row ; j++) {
+							this->array[i][j] -= a.array[i][j];
+						}
+					}
 				}
 			}
-		}
+		}	
 		return *this;
     }
     SArray operator+(const SArray& a){
-    	if(a.Row == this->Row && a.Col == this->Col){
-    		int array[this->Col][this->Row];
-    		if(this->Istemp | a.Istemp){
+		/* 
+			no matter which one is a temporary Object or not . 
+			operator+ have to return the long standing Object to count result.
+		*/
+		if(this->array == NULL || a.array == NULL) return SArray(); //check both are can use
+		if ( this->Istemp | a.Istemp ) { //one is a temporary Object 
+			if ( this->size != a.size ){ //size is not equal so can't add
+				return SArray();	
+			} else {
+				// if this Object is temporary Object then end need to add col
+				// else then the size is end
+				int array[this->size][this->size];
+				for (int i = this->Istemp?this->Col:0,j=a.Istemp?a.Col:0,h=0; h < this->size ;h++, i++, j++) {
+					for (int k = this->Istemp?this->Row:0,q=a.Istemp?a.Row:0,z=0; z < this->size ;z++, k++, q++) {
+						array[h][z] =  this->array[i][k] + a.array[j][q] ;
+					}
+				}
+				return SArray((int**)array,this->size);	
+			}
+		} else { // both are long standing Object
+			if(a.Row == this->Row && a.Col == this->Col ){ 
+				int array[this->Col][this->Row];
 				for(int i = 0; i < this->Col ; i++){
 					for(int j = 0 ; j < this->Row ; j++){
 						array[i][j] = this->array[i][j] + a.array[i][j];
 					}
 				}	
-    		}else{
-				for(int i = 0; i < this->Col ; i++){
-					for(int j = 0 ; j < this->Row ; j++){
-						array[i][j] = this->array[i][j] + a.array[i][j];
-					}
-				}
-    		}
-			return SArray((int**)array,this->Row,this->Col);
-		}else{
-			return SArray();	
+				return SArray((int**)array,this->Row,this->Col);
+			}else{
+				return SArray();	
+			}
 		}
     }
     SArray operator-(const SArray& a){
-		if(a.Row == this->Row && a.Col == this->Col){
-    		int array[this->Col][this->Row];
-			for(int i = 0; i < this->Col ; i++){
-				for(int j = 0 ; j < this->Row ; j++){
-					array[i][j] = this->array[i][j] - a.array[i][j];
+		/* 
+			no matter which one is temporary Object or not . 
+			operator- have to return the long standing Object to count result.
+		*/
+		if(this->array == NULL || a.array == NULL) return SArray();//check both are can use
+		if ( this->Istemp | a.Istemp ) { //one is a temporary Object 
+			if ( this->size != a.size ){ //size is not equal so can't sub
+				return SArray();	
+			} else {
+				// if this  Object is a temporary Object then end need to add col
+				// else then the size is end
+				int array[this->size][this->size];
+				for (int i = this->Istemp?this->Col:0,j=a.Istemp?a.Col:0,h=0; h < this->size ;h++, i++, j++) {
+					for (int k = this->Istemp?this->Row:0,q=a.Istemp?a.Row:0,z=0; z < this->size ;z++, k++, q++) {
+						array[h][z] =  this->array[i][k] - a.array[j][q] ;
+					}
 				}
+				return SArray((int**)array,this->size);	
 			}
-			return SArray((int**)array,this->Row,this->Col);
-		}else{
-			return SArray();	
+		} else { // both are long standing Object
+			if(a.Row == this->Row && a.Col == this->Col ){ 
+				int array[this->Col][this->Row];
+				for(int i = 0; i < this->Col ; i++){
+					for(int j = 0 ; j < this->Row ; j++){
+						array[i][j] = this->array[i][j] - a.array[i][j];
+					}
+				}	
+				return SArray((int**)array,this->Row,this->Col);
+			}else{
+				return SArray();	
+			}
 		}
+    	
     }
     SArray pMul(const SArray& a){ 
-    	if(this->Row == a.Col){
-    		int array[this->Col][a.Row];
-    		for(int i = 0 ; i < this->Col; i++){
-				for(int j = 0 ;j < a.Row;j++){
-					int num=0;
-					for(int k=0 ;k < this->Row;k++){
+		if (this->size != a.size) { // Difference size  cna't mul
+			cout<<"Size is didderence"<<endl;
+			return SArray();		// if both are 0 0 need to special process
+		} else if ( this->Istemp && a.Istemp ) { // Both Object are temporary Object
+			cout<<"Both are temporary"<<endl;
+			int array[this->size][this->size];
+			for (int i = this->Col ; i < this->size; i++) {
+				for (int j = a.Row ;j < a.size;j++) {
+					int num = 0;
+					for (int k=0 ;k < this->size ;k++) {
 						num += this->array[i][k] * a.array[k][j];
 					}
 					array[i][j] = num;
 				}
 			}
-			return SArray((int**)array,this->Col,a.Row);
-    	}else{
-    		return SArray();
-    	}	
+			return SArray((int**)array,this->size);
+		} else if( (this->Istemp ^ a.Istemp) ) { // a or this Object is a temporary Object
+			if(a.Istemp){ // a is a temporary Object 
+				cout<<"a is temporary"<<endl;
+				int array[this->size][this->size];
+				for (int i = 0 ; i < this->size; i++) {
+					for (int j = a.Row ;j < a.Row+a.size;j++) {
+						int num=0;
+						for (int k=0 ;k < this->size ;k++) {
+							num += this->array[i][k] * a.array[k+a.Col][j];
+						}
+						array[i][j] = num;
+					}
+				}
+				return SArray((int**)array,this->size);
+			}else{ // this Object is a temporary Object
+				cout<<"this is temporary"<<endl;
+				int array[a.size][a.size];
+				for (int i = this->Col ; i < this->size; i++) {
+					for (int j = 0 ;j < a.size ;j++) {
+						int num=0;
+						for (int k = 0 ;k < this->size ;k++) {
+							num += this->array[i][k] * a.array[k][j];
+						}
+						array[i][j] = num;
+					}
+				}
+				return SArray((int**)array,a.size);
+			}
+		} else if (this->Row == a.Col) {// a Object and this Object have diffference but can mul
+				int array[this->Col][a.Row];
+				for (int i = 0 ; i < this->Col; i++) {
+					for (int j = 0 ;j < a.Row;j++) {
+						int num=0;
+						for (int k=0 ;k < this->Row;k++) {
+							num += this->array[i][k] * a.array[k][j];
+						}
+						array[i][j] = num;
+					}
+				}
+				return SArray((int**)array,this->Col,a.Row);
+		}else{
+			return SArray();
+		}
     }
     SArray operator*(int num){
     	int array[this->Col][this->Row];
@@ -747,6 +838,98 @@ void mytest_matrix_add_equal(unsigned int num){
 	b+=c;
 	b.Show();
 }
+void mytest_matrix_sub_equal(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	int max=1000,min=0;
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand() % (max - min + 1) + min;
+			arr2[i][j] = rand() % (max - min + 1) + min;
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	SArray c = a.getsub(0,0,num);
+	cout<<"a:"<<endl;
+	a.Show();
+	cout<<"b:"<<endl;
+	b.Show();
+	a-=b;
+	cout<<"a-=b:"<<endl;
+	a.Show();
+	cout<<"c:"<<endl;
+	c.Show();
+	cout<<"b-=c:"<<endl;
+	b-=c;
+	b.Show();
+	cout<<"c-=b:"<<endl;
+	c-=b;
+	c.Show();
+}
+void mytest_matrix_operator_add(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	int max=1000,min=0;
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand() % (max - min + 1) + min;
+			arr2[i][j] = rand() % (max - min + 1) + min;
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	SArray c = a+b;
+	SArray e = b+a.getsub(0,0,num);
+	SArray h = b.getsub(0,0,num)+a;
+	SArray g = b.getsub(0,0,num)+a.getsub(0,0,num);
+	cout<<"a: "<<endl;
+	a.Show();
+	cout<<"b: "<<endl;
+	b.Show();
+	cout<<"c: a+b "<<endl;
+	c.Showsize();
+	c.Show();
+	cout<<"e: b+a.getsub(0,0,num)"<<endl;
+	e.Showsize();
+	e.Show();
+	cout<<"h: b.getsub(0,0,num)+a"<<endl;
+	h.Showsize();
+	h.Show();
+	cout<<"g: b.getsub(0,0,num)+a.getsub(0,0,num)"<<endl;
+	g.Showsize();
+	g.Show();
+}
+void mytest_matrix_pMul(unsigned int num){
+	int arr1[num][num],arr2[num][num];
+	int max=1000,min=0;
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			arr1[i][j] = rand() % (max - min + 1) + min;
+			arr2[i][j] = rand() % (max - min + 1) + min;
+		}
+	}
+	SArray a = SArray((int**) arr1,num,num);
+	SArray b = SArray((int**) arr2,num,num);
+	SArray c = a.pMul(b);
+	cout<<"a: "<<endl;
+	a.Show();
+	cout<<"b: "<<endl;
+	b.Show();
+	cout<<"c: a.pMul(b) "<<endl;
+	c.Showsize();
+	c.Show();
+	cout<<"e: b.pMul(a.getsub(0,0,num))"<<endl;
+	SArray e = b.getsub(0,0,num).pMul(a.getsub(0,0,num));
+	e.Showsize();
+	e.Show();
+	cout<<"h: b.getsub(0,0,num).pMul(a)"<<endl;
+	SArray h = b.getsub(0,0,num).pMul(a);
+	h.Showsize();
+	h.Show();
+	cout<<"g: b.pMul(a.getsub(0,0,num))"<<endl;
+	SArray g = b.pMul(a.getsub(0,0,num));
+	g.Showsize();
+	g.Show();
+}
 
 void mytest1(unsigned int num){
 	clock_t start, finish;   
@@ -895,10 +1078,13 @@ void Main(void){
 }
 
 int main(void){
+	srand( time(NULL) );
 	int i=0;
 	cin>>i;
 	// mytest_matrix_getSub(i);
 	// mytest_matrix_equal(i);
-	//mytest_matrix_operator_equal(i);
-	mytest_matrix_add_equal(i);
+	// mytest_matrix_operator_equal(i);
+	// mytest_matrix_add_equal(i);
+	// mytest_matrix_sub_equal(i);
+	mytest_matrix_pMul(i);
 }	
