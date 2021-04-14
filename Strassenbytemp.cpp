@@ -522,37 +522,63 @@ public:
 		}
     }
     SArray operator*(int num){
-    	int array[this->Col][this->Row];
-    	if(this->array != NULL){
-    		for(int i = 0;i<this->Col;i++){
-				for(int j =0 ;j<this->Row;j++){
+		if(this->array == NULL) SArray(); //the empty Object can't use 
+		if(this->Istemp){
+			int array[this->size][this->size];
+			for (int i = this->Col ; i<this->size ; i++) {
+				for (int j =this->Row ; j<this->size ; j++) {
 					array[i][j] = this->array[i][j] * num;
 				}
 			}
-    	}
-    	return SArray((int**)array,this->Col,this->Row);
+			return SArray((int**)array,this->size);
+		}else{
+			int array[this->Col][this->Row];
+			for (int i = 0;i<this->Col;i++) {
+				for (int j =0 ;j<this->Row;j++) {
+					array[i][j] = this->array[i][j] * num;
+				}
+			}
+			return SArray((int**)array,this->Col,this->Row);
+		}
     }
     SArray& operator=(SArray other){
-    	if(this->Col != other.Col || this->Row != other.Row){
-    		if(this->array != NULL){
-    			this->clear_arr();
-    		}
-    		this->size = other.getsize();
-    		this->array = new int*[other.Col];
-			for(int i =0;i < other.Col ; i++){
-				this->array[i] = new int[other.Row]() ;
-			}
-    	}
-    	this->Col = other.Col;
-		this->Row = other.Row;
-		for(int i = 0; i < this->Col ; i++){
-			for(int j = 0 ; j < this->Row ; j++){
-				this->array[i][j] = other.array[i][j];
+		if(!this->Istemp){//temporary Object an't use 
+			if(other.Istemp){
+				if(this->size == other.size){
+					for (int i = other.Col,q=0;i < other.Col+other.size; i++,q++) {
+						for(int j = other.Row,k=0;j < other.Row+other.size; j++,k++) {
+							this->array[q][k] = other.array[i][j];
+						}
+					}
+				}
+			}else{
+				if(this->Col != other.Col || this->Row != other.Row){
+					if(this->array != NULL){
+						this->clear_arr();
+					}
+					this->size = other.getsize();
+					this->array = new int*[other.Col];
+					for(int i =0;i < other.Col ; i++){
+						this->array[i] = new int[other.Row]() ;
+					}
+				}
+				this->Col = other.Col;
+				this->Row = other.Row;
+				for(int i = 0; i < this->Col ; i++){
+					for(int j = 0 ; j < this->Row ; j++){
+						this->array[i][j] = other.array[i][j];
+					}
+				}
 			}
 		}
 		return *this;
 	}
     SArray operator*(const SArray& a){ 
+		// if (this->Istemp) {
+
+		// } else {
+
+		// }
     	if(this->Row == a.Col){
 	    	if(a.getsize()<=125){//最大125
 	    		return this->pMul(a);
@@ -1073,7 +1099,6 @@ void Main(void){
 	
 	F_matrix.squarify(large);
 	S_matrix.squarify(large);
-	
 	(F_matrix*S_matrix).anti_Show(arg[3],arg[0]);
 }
 
