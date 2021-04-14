@@ -5,3 +5,4 @@ g++ Strassen_fast.cpp -std=c++11 -g -o  Strassen_fast
 valgrind --tool=memcheck --leak-check=full ./Strassen_fast
 
 valgrind --tool=memcheck --leak-check=full ./Strassenbytemp
+valgrind --tool=memcheck --leak-check=full --track-origins=yes ./Strassenbytemp
