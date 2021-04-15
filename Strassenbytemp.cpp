@@ -624,9 +624,19 @@ public:
 				}
 				return SArray((int**)array,this->Col,a.Row);
 		} else {
-			if(this->size <= 2 ){
+			if (this->size <= 2 ) {
 				return this->pMul(a);
-			}else{
+			} else {
+				bool isodd = false;// let below constrouct know it need to Subtract
+				if ( (this->size &1) == 1 ) { //if this matrix size is odd
+					cout<<"It's odd"<<endl;
+					isodd = true;
+					if (this->Istemp && this->array != NULL) { // for temporary Object
+
+					} else { // for long standing Object
+						this->squarify(this->size+1);
+					}
+				}
 				SArray Mnum[7];
 				SArray ANS[4];
 				int nsize = a.getsize()/2;
@@ -676,32 +686,34 @@ public:
 
 				int original = nsize;
 				int newsize = original * 2;
-				int array[newsize][newsize];
+				int array[isodd ? newsize-1 : newsize][isodd ? newsize-1 : newsize];
+				// if it is odd. it must be Subtract.
 
 				for(int i = 0 ;i < original ; i++){
 					for(int j = 0; j < original ; j++){
 						array[i][j] = ANS[0].array[i][j];
 					}
-					for(int k = original; k < newsize ; k++){
+					for(int k = original; k < (isodd? newsize-1:newsize) ; k++){
 						array[i][k] = ANS[1].array[i][k-original];
 					}
 				}
 				//down
-				for(int i = original; i < newsize ; i++){
+				for(int i = original; i < (isodd ? newsize-1 : newsize) ; i++){
 					for(int j = 0; j < original ; j++){
 						array[i][j] = ANS[2].array[i-original][j];
 					}
-					for(int k = original; k < newsize ; k++){
+					for(int k = original; k < (isodd ? newsize-1 :newsize) ; k++){
 						array[i][k] = ANS[3].array[i-original][k-original];
 					}
 				}
-				
 				return SArray((int**)array,newsize);
 			}
-			
 		}
     }
 	void squarify(){
+		//some time array need to squarify to match the counting size
+		//can't using in temporary Object
+		if(this->Istemp) return;
 		if (this->Row != this->Col && this->size == 0){
 			int big,small;
 			if (this->Row > this->Col){
@@ -730,6 +742,10 @@ public:
 		}
 	}
 	void squarify(int num){
+		//some time array need to squarify to match the counting size
+		//can't using in temporary Object
+		if(this->Istemp) return;
+
 		if( num >= this->Row && num >= this->Col ){
 			int** temp = new int*[num];
 			for(int i = 0 ; i < num ; i++){
@@ -1035,6 +1051,8 @@ void mytest_matrix_operator_asssign(unsigned int num){
 }
 
 void mytest_matrix_operator_Mul(unsigned int num){
+
+	//But now the answer is wrong
 	int arr1[num][num],arr2[num][num];
 	int max=20,min=0;
 	for(int i =0;i<num;i++){
@@ -1049,14 +1067,19 @@ void mytest_matrix_operator_Mul(unsigned int num){
 	a.Show();
 	cout<<"b: "<<endl;
 	b.Show();
-	cout<<"d: b*a "<<endl;
-	SArray d = b*a;
-	d.Showsize();
-	d.Show();
-	cout<<"c: a*b "<<endl;
+	// cout<<"d: b*a "<<endl;
+	// SArray d = b*a;
+	// d.Showsize();
+	// d.Show();
+	cout<<"a.pMul(b)"<<endl;
+	SArray e = a.pMul(b);
+	// e.Showsize();
+	e.Show();
+	cout<<"c: a*b "<<endl; // e and c must be equal
 	SArray c = a*b;
-	c.Showsize();
+	// c.Showsize();
 	c.Show();
+	
 	
 }
 
