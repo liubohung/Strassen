@@ -74,38 +74,22 @@ public:
 		this->Col = -1;
 		this->Istemp = true;
 	}
-	SArray(int** arr,bool Istemp,int col,int row,int size){
-		/* 
-			This constructor is only for the temporary Object 
-			use in the method getsub() .
-			
-			This constructor is use to helped the getsub be fast 
-			when multiply the big Object 
-
-			The size is store the the original matrix's size.It's to 
-			help to count the this sub matrix position. 
-			Must to use carefully using.
-		*/
-		if(arr != NULL){
-			this->array = arr ;
-			this->size = size ;
-			this->Row = row ;
-			this->Col = col ;
-			this->Istemp = true;
-		}else{
-			this->array = NULL;
-			this->size = -1 ;
-			this->Row = -1 ;
-			this->Col = -1 ;
-			this->Istemp = true;
-		}
-	}
 	SArray(int length):size(length),Row(length),Col(length){
 		this->array = new int*[length] ;
 		for(int i = 0;i<size;i++){
 			this->array[i] = new int[length]();
 		}
 		this->Istemp = false;
+	}
+	SArray(int col,int row):Row(row),Col(col){
+		// Make a matrix 
+		// This matrix probably not a square matrix but it still can being.
+		this->Istemp = false;
+		this->size = col == row ? row:0;// if col equal to row then set it or 0
+		this->array = new int*[col] ;
+		for(int i =0;i<col;i++){
+			this->array[i] = new int[row]() ;
+		}
 	}
 	SArray(int** arr,int length):size(length),Row(length),Col(length){
 		/*
@@ -144,6 +128,32 @@ public:
 			}
 		}
 	}
+	SArray(int** arr,bool Istemp,int col,int row,int size){
+		/* 
+			This constructor is only for the temporary Object 
+			use in the method getsub() .
+			
+			This constructor is use to helped the getsub be fast 
+			when multiply the big Object 
+
+			The size is store the the original matrix's size.It's to 
+			help to count the this sub matrix position. 
+			Must to use carefully using.
+		*/
+		if(arr != NULL){
+			this->array = arr ;
+			this->size = size ;
+			this->Row = row ;
+			this->Col = col ;
+			this->Istemp = true;
+		}else{
+			this->array = NULL;
+			this->size = -1 ;
+			this->Row = -1 ;
+			this->Col = -1 ;
+			this->Istemp = true;
+		}
+	}
 	~SArray(){
 		if(this->array != NULL){
 			this->clear_arr();
@@ -152,7 +162,7 @@ public:
 	void Show(void){
 		if( this->size == -1 || this->array == NULL){
 			cout<<"Is empty"<<endl;
-		}else if(this->Istemp){//not complete i think it have some error 
+		}else if(this->Istemp){
 			cout<<"Print temporary Object " << endl;
 			if (this->size == 1) {
 				cout<<this->array[this->Col][this->Row]<<endl;
@@ -429,23 +439,23 @@ public:
 			} else {
 				// if this Object is temporary Object then end need to add col
 				// else then the size is end
-				int array[this->size][this->size];
-				for (int i = this->Istemp ? this->Col:0,j=a.Istemp?a.Col:0,h=0; h < this->size ;h++, i++, j++) {
-					for (int k = this->Istemp?this->Row:0,q=a.Istemp?a.Row:0,z=0; z < this->size ;z++, k++, q++) {
-						array[h][z] =  this->array[i][k] + a.array[j][q] ;
+				SArray result = SArray(this->size);
+				for (int i = this->Istemp ? this->Col : 0, j=a.Istemp?a.Col:0,h=0; h < this->size ;h++, i++, j++) {
+					for (int k = this->Istemp ? this->Row : 0, q=a.Istemp?a.Row:0,z=0; z < this->size ;z++, k++, q++) {
+						result.array[h][z] =  this->array[i][k] + a.array[j][q] ;
 					}
 				}
-				return SArray((int**)array,this->size);	
+				return result;	
 			}
 		} else { // both are long standing Object
 			if(a.Row == this->Row && a.Col == this->Col ){ 
-				int array[this->Col][this->Row];
+				SArray result = SArray(this->Col,this->Row);
 				for(int i = 0; i < this->Col ; i++){
 					for(int j = 0 ; j < this->Row ; j++){
-						array[i][j] = this->array[i][j] + a.array[i][j];
+						result.array[i][j] = this->array[i][j] + a.array[i][j];
 					}
 				}	
-				return SArray((int**)array,this->Row,this->Col);
+				return result;
 			}else{
 				return SArray();	
 			}
@@ -463,78 +473,70 @@ public:
 			} else {
 				// if this  Object is a temporary Object then end need to add col
 				// else then the size is end
-				int array[this->size][this->size];
+				SArray result = SArray(this->size);
 				for (int i = this->Istemp?this->Col:0,j=a.Istemp?a.Col:0,h=0; h < this->size ;h++, i++, j++) {
 					for (int k = this->Istemp?this->Row:0,q=a.Istemp?a.Row:0,z=0; z < this->size ;z++, k++, q++) {
-						array[h][z] =  this->array[i][k] - a.array[j][q] ;
+						result.array[h][z] =  this->array[i][k] - a.array[j][q] ;
 					}
 				}
-				return SArray((int**)array,this->size);	
+				return result;	
 			}
 		} else { // both are long standing Object
 			if(a.Row == this->Row && a.Col == this->Col ){ 
-				int array[this->Col][this->Row];
+				SArray result = SArray(this->Col,this->Row);
 				for(int i = 0; i < this->Col ; i++){
 					for(int j = 0 ; j < this->Row ; j++){
-						array[i][j] = this->array[i][j] - a.array[i][j];
+						result.array[i][j] = this->array[i][j] - a.array[i][j];
 					}
 				}	
-				return SArray((int**)array,this->Row,this->Col);
+				return result;
 			}else{
 				return SArray();	
 			}
-		}
-    	
+		}	
     }
     SArray pMul(const SArray& a){ 
-		if (this->size != a.size) { // Difference size  cna't mul
-			cout<<"Size is didderence"<<endl;
-			return SArray();		// if both are 0 0 need to special process
+		if (this->size != a.size) { // Difference size cna't mul
+			return SArray();		
 		} else if ( this->Istemp && a.Istemp ) { // Both Object are temporary Object
-			cout<<"Both are temporary"<<endl;
-			int array[this->size][this->size];
-			for(int i =0;i<this->size;i++){
-				for(int j =0;j<this->size;j++){
-					 array[i][j] = 0;
-				}
-			}
+			// cout<<"Both are temporary"<<endl;
+			SArray result = SArray(this->size);
 			for (int i = this->Col ; i < this->Col + this->size; i++) {
 				for (int j = a.Row ;j < a.Row + a.size;j++) {
 					int num = 0;
 					for (int k=this->Row,q=a.Col ;k < this->Row+this->size ;k++,q++) {
 						num += this->array[i][k] * a.array[q][j];
 					}
-					array[i-this->Col][j-a.Row] = num;
+					result.array[i-this->Col][j-a.Row] = num;
 				}
 			}
-			return SArray((int**)array,this->size);
+			return result;
 		} else if( (this->Istemp ^ a.Istemp) ) { // a or this Object is a temporary Object
 			if(a.Istemp){ // a is a temporary Object 
-				cout<<"a is temporary"<<endl;
-				int array[this->size][this->size];
+				SArray result = SArray(this->size);
+				int num=0;
 				for (int i = 0 ; i < this->size; i++) {
 					for (int j = a.Row ;j < a.Row+a.size;j++) {
-						int num=0;
+						num=0;
 						for (int k=0 ;k < this->size ;k++) {
 							num += this->array[i][k] * a.array[k+a.Col][j];
 						}
-						array[i][j-a.Row] = num;
+						result.array[i][j-a.Row] = num;
 					}
 				}
-				return SArray((int**)array,this->size);
+				return result;
 			}else{ // this Object is a temporary Object
-				cout<<"this is temporary"<<endl;
-				int array[a.size][a.size];
+				SArray result = SArray(a.size);
 				for (int i = this->Col ; i < this->size+this->Col; i++) {
 					for (int j = 0 ;j < a.size ;j++) {
 						int num=0;
 						for (int k = 0 ;k < this->size ;k++) {
 							num += this->array[i][k+this->Row] * a.array[k][j];
 						}
-						array[i-this->Col][j] = num;
+						result.array[i-this->Col][j] = num;
 					}
 				}
-				return SArray((int**)array,a.size);
+				return result;
 			}
 		} else if (this->Row == a.Col) {// a Object and this Object have diffference but can mul
 				int array[this->Col][a.Row];
@@ -609,9 +611,9 @@ public:
 	}
     SArray operator*(const SArray& a){ 
 		if (this->size != a.size) { // Difference size  cna't mul
-			cout<<"Size is didderence"<<endl;
+			// cout<<"Size is didderence"<<endl;
 			return SArray();		// if both are 0 0 need to special process
-		} else if ( this->Row == a.Col && this->size == 0 && a.size == 0) {// a Object and this Object have diffference but can mul
+		} else if ( this->Row == a.Col && this->size == 0 && a.size == 0 && this->Istemp) {// a Object and this Object have diffference but can mul
 				int array[this->Col][a.Row];
 				for (int i = 0 ; i < this->Col; i++) {
 					for (int j = 0 ;j < a.Row;j++) {
@@ -624,12 +626,12 @@ public:
 				}
 				return SArray((int**)array,this->Col,a.Row);
 		} else {
-			if (this->size <= 2 ) {
+			if ( this->size <= 256 ) {
 				return this->pMul(a);
 			} else {
 				bool isodd = false;// let below constrouct know it need to Subtract
 				if ( (this->size &1) == 1 ) { //if this matrix size is odd
-					cout<<"It's odd"<<endl;
+					// cout<<"It's odd"<<endl;
 					isodd = true;
 					if (this->Istemp && this->array != NULL) { // for temporary Object
 
@@ -641,13 +643,14 @@ public:
 				SArray ANS[4];
 				int nsize = a.getsize()/2;
 				Mnum[0] = ((this->getsub(0,0,nsize)) + (this->getsub(nsize,nsize,nsize))) * ((a.getsub(0,0,nsize)) + (a.getsub(nsize,nsize,nsize)));
-				Mnum[1] = ((this->getsub(nsize,0,nsize) + this->getsub(nsize,nsize,nsize)) * a.getsub(0,0,nsize));
-				Mnum[2] = (this->getsub(0,0,nsize) * ((a.getsub(0,nsize,nsize)) - (a.getsub(nsize,nsize,nsize))));
-				Mnum[3] = (this->getsub(nsize,nsize,nsize) * ( a.getsub(nsize,0,nsize) - a.getsub(0,0,nsize)));
-				Mnum[4] = (this->getsub(0,0,nsize) + this->getsub(0,nsize,nsize)) * a.getsub(nsize,nsize,nsize);
-				Mnum[5] = (this->getsub(nsize,0,nsize)-this->getsub(0,0,nsize)) * (a.getsub(0,0,nsize) + a.getsub(0,nsize,nsize));
-				Mnum[6] = (this->getsub(0,nsize,nsize) - this->getsub(nsize,nsize,nsize)) * (a.getsub(nsize,0,nsize) + a.getsub(nsize,nsize,nsize));
+				Mnum[1] = ((this->getsub(0,nsize,nsize) + this->getsub(nsize,nsize,nsize)) * a.getsub(0,0,nsize));
+				Mnum[2] = (this->getsub(0,0,nsize) * ((a.getsub(nsize,0,nsize)) - (a.getsub(nsize,nsize,nsize))) );
+				Mnum[3] = (this->getsub(nsize,nsize,nsize) * (a.getsub(0,nsize,nsize) - a.getsub(0,0,nsize)));
+				Mnum[4] = ( (this->getsub(0,0,nsize) + this->getsub(nsize,0,nsize)) * a.getsub(nsize,nsize,nsize));
+				Mnum[5] = ((this->getsub(0,nsize,nsize) - this->getsub(0,0,nsize)) * (a.getsub(0,0,nsize) + a.getsub(nsize,0,nsize)));
+				Mnum[6] = ((this->getsub(nsize,0,nsize) - this->getsub(nsize,nsize,nsize)) * (a.getsub(0,nsize,nsize) + a.getsub(nsize,nsize,nsize)));
 				
+
 				ANS[0] = (Mnum[0] + Mnum[3] - Mnum[4] + Mnum[6]);
 				ANS[1] = (Mnum[2] + Mnum[4]);
 				ANS[2] = (Mnum[1] + Mnum[3]);
@@ -686,27 +689,28 @@ public:
 
 				int original = nsize;
 				int newsize = original * 2;
-				int array[isodd ? newsize-1 : newsize][isodd ? newsize-1 : newsize];
+				SArray result = SArray(isodd ? newsize-1 : newsize);
+				// int array[isodd ? newsize-1 : newsize][isodd ? newsize-1 : newsize];
 				// if it is odd. it must be Subtract.
 
 				for(int i = 0 ;i < original ; i++){
 					for(int j = 0; j < original ; j++){
-						array[i][j] = ANS[0].array[i][j];
+						result.array[i][j] = ANS[0].array[i][j];
 					}
 					for(int k = original; k < (isodd? newsize-1:newsize) ; k++){
-						array[i][k] = ANS[1].array[i][k-original];
+						result.array[i][k] = ANS[1].array[i][k-original];
 					}
 				}
 				//down
 				for(int i = original; i < (isodd ? newsize-1 : newsize) ; i++){
 					for(int j = 0; j < original ; j++){
-						array[i][j] = ANS[2].array[i-original][j];
+						result.array[i][j] = ANS[2].array[i-original][j];
 					}
 					for(int k = original; k < (isodd ? newsize-1 :newsize) ; k++){
-						array[i][k] = ANS[3].array[i-original][k-original];
+						result.array[i][k] = ANS[3].array[i-original][k-original];
 					}
 				}
-				return SArray((int**)array,newsize);
+				return result;
 			}
 		}
     }
@@ -965,6 +969,7 @@ void mytest_matrix_operator_add(unsigned int num){
 	SArray e = b+a.getsub(0,0,num);
 	SArray h = b.getsub(0,0,num)+a;
 	SArray g = b.getsub(0,0,num)+a.getsub(0,0,num);
+	SArray k = b.getsub(0,0,num-1)+a.getsub(0,0,num-1);
 	cout<<"a: "<<endl;
 	a.Show();
 	cout<<"b: "<<endl;
@@ -981,6 +986,9 @@ void mytest_matrix_operator_add(unsigned int num){
 	cout<<"g: b.getsub(0,0,num)+a.getsub(0,0,num)"<<endl;
 	g.Showsize();
 	g.Show();
+	cout<<"k: b.getsub(0,0,num-1)+a.getsub(0,0,num-1);"<<endl;
+	k.Showsize();
+	k.Show();
 }
 void mytest_matrix_pMul(unsigned int num){
 	int arr1[num][num],arr2[num][num];
@@ -1051,8 +1059,6 @@ void mytest_matrix_operator_asssign(unsigned int num){
 }
 
 void mytest_matrix_operator_Mul(unsigned int num){
-
-	//But now the answer is wrong
 	int arr1[num][num],arr2[num][num];
 	int max=20,min=0;
 	for(int i =0;i<num;i++){
@@ -1071,18 +1077,48 @@ void mytest_matrix_operator_Mul(unsigned int num){
 	// SArray d = b*a;
 	// d.Showsize();
 	// d.Show();
+	int nsize = 2;
+	
 	cout<<"a.pMul(b)"<<endl;
 	SArray e = a.pMul(b);
 	// e.Showsize();
 	e.Show();
-	cout<<"c: a*b "<<endl; // e and c must be equal
+	// cout<<"c: a*b "<<endl; // e and c must be equal
 	SArray c = a*b;
-	// c.Showsize();
+	c.Showsize();
 	c.Show();
-	
-	
+	if(e == c){
+		cout<<"Good"<<endl;
+	}
 }
 
+void time_test(unsigned int num){
+	clock_t start1, finish1;   
+	clock_t start2, finish2;   
+    double duration;
+	SArray a = SArray(num);
+	SArray b = SArray(num);
+	int max=1000,min=0;
+	for(int i =0;i<num;i++){
+		for(int j=0;j<num;j++){
+			a.array[i][j] = rand() % (max - min + 1) + min;
+			b.array[i][j] = rand() % (max - min + 1) + min;
+		}
+	}
+	
+	start1 = clock(); 
+	(a.pMul(b));//.Show();
+	finish1 = clock();  
+	duration = (double)(finish1 - start1) / CLOCKS_PER_SEC;
+	cout<<"pMul__Time :" << duration << " seconds."<<endl;
+	
+	start2 = clock(); 
+	(a*b);//.Show();
+	finish2 = clock();  
+	duration = (double)(finish2 - start2) / CLOCKS_PER_SEC;
+	cout<<"operator__Time :" << duration << " seconds."<<endl;
+
+}
 
 void mytest1(unsigned int num){
 	clock_t start, finish;   
@@ -1198,6 +1234,7 @@ void mytest2(void){
 	delete &a;
 	delete &b;
 }
+
 void Main(void){
 	int arg[4];
 	scanf("%d %d %d %d\n",&arg[0],&arg[1],&arg[2],&arg[3]);
@@ -1206,6 +1243,7 @@ void Main(void){
 		if(arg[i] > large) large = arg[i];
 	}
 	if(large == 0) return;
+
 	if((large &1) == 1){
 		large++;
 	}
@@ -1239,9 +1277,11 @@ int main(void){
 	// mytest_matrix_getSub(i);
 	// mytest_matrix_equal(i);
 	// mytest_matrix_operator_equal(i);
+	// mytest_matrix_operator_add(i);
 	// mytest_matrix_add_equal(i);
 	// mytest_matrix_sub_equal(i);
 	// mytest_matrix_pMul(i);
 	// mytest_matrix_operator_asssign(i);
-	mytest_matrix_operator_Mul(i);
+	// mytest_matrix_operator_Mul(i);
+	time_test(i);
 }	
